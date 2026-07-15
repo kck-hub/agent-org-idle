@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Org Idle</title>
+<style>
+  :root {
+    --bg:      #0d0a07;
+    --panel:   #131009;
+    --line:    #2b2016;
+    --bronze:  #c67c3b;
+    --bronze-d:#8a5528;
+    --ink:     #f4eee0;
+    --dim:     #ab875a;
+    --dimmer:  #6b5539;
+    --bad:     #c4553d;
+    --good:    #5f8f6a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.5 "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    padding: 24px 16px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  h1 {
+    font-size: 15px; font-weight: 600; letter-spacing: .18em;
+    color: var(--bronze); text-transform: uppercase; margin-bottom: 2px;
+  }
+  .sub { color: var(--dimmer); font-size: 12px; margin-bottom: 20px; }
+
+  .readout {
+    border: 1px solid var(--line); background: var(--panel);
+    padding: 14px 16px; margin-bottom: 14px;
+  }
+  .tokens { font-size: 30px; color: var(--ink); letter-spacing: .02em; }
+  .tokens small { font-size: 12px; color: var(--dimmer); letter-spacing: .12em; margin-left: 6px; }
+  .rates { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; }
+  .rates b { font-weight: 600; }
+  .k { color: var(--dimmer); }
+  .neg { color: var(--bad); }
+  .pos { color: var(--good); }
+
+  .actions { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  button {
+    font: inherit; cursor: pointer; color: var(--ink);
+    background: #181209; border: 1px solid var(--bronze-d);
+    padding: 11px 16px; letter-spacing: .1em; text-transform: uppercase;
+    font-size: 12px; transition: background .08s, border-color .08s;
+  }
+  button:hover:not(:disabled) { background: #241a0d; border-color: var(--bronze); }
+  button:active:not(:disabled) { background: #2e2110; }
+  button:disabled { opacity: .32; cursor: default; }
+  .act { flex: 1; min-width: 150px; padding: 14px; }
+
+  h2 {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--dim); margin: 20px 0 8px; font-weight: 600;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 10.5px; letter-spacing: .12em; font-weight: 600;
+    color: var(--dimmer); text-transform: uppercase;
+    padding: 0 8px 6px; border-bottom: 1px solid var(--line);
+  }
+  th.n, td.n { text-align: right; }
+  td { padding: 9px 8px; border-bottom: 1px solid #1a1409; vertical-align: middle; }
+  tr.locked td { opacity: .38; }
+  .nm { color: var(--ink); }
+  .fl { color: var(--dimmer); font-size: 11px; margin-top: 2px; }
+  .cnt { color: var(--bronze); font-size: 16px; }
+  td button { padding: 7px 11px; font-size: 11px; white-space: nowrap; }
+
+  .debt { border-left: 2px solid var(--bad); padding-left: 12px; margin: 14px 0; }
+  .debt .big { font-size: 20px; color: var(--bad); }
+  .debt .note { color: var(--dimmer); font-size: 12px; }
+  .brown { color: var(--bad); font-size: 12px; margin-top: 6px; display: none; }
+
+  #log {
+    border: 1px solid var(--line); background: var(--panel);
+    padding: 10px 12px; height: 148px; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  #log div { font-size: 12px; color: var(--dim); padding: 1.5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #log div.d { color: var(--bad); }
+  #log div.g { color: var(--good); }
+
+  .foot { margin-top: 20px; display: flex; gap: 10px; align-items: center; }
+  .foot button { padding: 6px 10px; font-size: 10px; border-color: var(--line); }
+  .foot span { color: var(--dimmer); font-size: 11px; margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Agent Org Idle</h1>
+  <div class="sub">cheap agents are cheap because they lie.</div>
+
+  <div class="readout">
+    <div class="tokens"><span id="tok">0</span><small>TOKENS</small></div>
+    <div class="rates">
+      <span class="k">out <b id="prod" class="pos">0/s</b></span>
+      <span class="k">burn <b id="burn" class="neg">0/s</b></span>
+      <span class="k">net <b id="net">0/s</b></span>
+      <span class="k">integrity <b id="mult">100%</b></span>
+    </div>
+    <div class="brown" id="brown">// BROWNOUT — tokens exhausted. paid seats idle until reserves recover.</div>
+  </div>
+
+  <div class="actions">
+    <button class="act" id="work">Do a task <span id="clickv" style="color:var(--dim)"></span></button>
+    <button class="act" id="review">Review <span id="reviewv" style="color:var(--dim)"></span></button>
+  </div>
+
+  <div class="debt">
+    <div class="big"><span id="debt">0</span> defect debt</div>
+    <div class="note" id="debtnote">clean.</div>
+  </div>
+
+  <h2>Seats</h2>
+  <table>
+    <thead><tr>
+      <th>Seat</th><th class="n">Own</th><th class="n">Out</th><th class="n">Burn</th><th class="n">Defects</th><th class="n"></th>
+    </tr></thead>
+    <tbody id="seats"></tbody>
+  </table>
+
+  <h2>Conventions</h2>
+  <table>
+    <thead><tr><th>Upgrade</th><th class="n"></th></tr></thead>
+    <tbody id="ups"></tbody>
+  </table>
+
+  <h2>Feed</h2>
+  <div id="log"></div>
+
+  <div class="foot">
+    <button id="wipe">Hard reset</button>
+    <span id="saved">&nbsp;</span>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+   DATA  —  everything tunable lives here.
+   Adding a seat or an upgrade means adding ONE row below and touching
+   zero engine code. If you ever have to edit the tick loop to add content,
+   something has gone wrong. That is the whole architectural bet.
+   ========================================================================= */
+
+const SEATS = [
+  { id:'hy3',   name:'HY3',   baseCost:15,   growth:1.15, rate:0.3, burn:0,  defects:0.15, clears:0,
+    flavor:'free tier. slow, and it lies.' },
+  { id:'flash', name:'Flash', baseCost:120,  growth:1.15, rate:4,   burn:2,  defects:0.04, clears:0,
+    flavor:'cheap and fast. mostly honest.' },
+  { id:'glm',   name:'GLM',   baseCost:1400, growth:1.15, rate:22,  burn:11, defects:0.01, clears:0,
+    flavor:'the workhorse. pays for itself.' },
+  { id:'opus',  name:'Opus',  baseCost:8000, growth:1.18, rate:0,   burn:75, defects:0,    clears:2,
+    flavor:'produces nothing. reviews everything.' }
+];
+
+const UPGRADES = [
+  { id:'shrink',  name:'Shrink Guard',      cost:400,   need:{flash:1},
+    desc:'refuse any write that shrinks a file >50%. -25% defects org-wide.',
+    effect:{ type:'defectMult', value:0.75 } },
+  { id:'precheck',name:'Precheck Script',   cost:1200,  need:{hy3:5},
+    desc:'deterministic audit before the model runs. manual review clears 3x.',
+    effect:{ type:'reviewPower', value:3 } },
+  { id:'strict',  name:'Strict MCP Config', cost:3000,  need:{glm:1},
+    desc:'drop the unused-context tax. -15% burn on every paid seat.',
+    effect:{ type:'burnMult', value:0.85 } },
+  { id:'compact', name:'Context Compaction',cost:9000,  need:{glm:5},
+    desc:'auto-compact at 80%. +25% output org-wide.',
+    effect:{ type:'prodMult', value:1.25 } },
+  { id:'perstage',name:'Per-Stage Markers', cost:24000, need:{opus:1},
+    desc:'a stage that already passed cannot re-run or false-fail. -40% defects.',
+    effect:{ type:'defectMult', value:0.60 } }
+];
+
+const CFG = {
+  tickMs:        100,
+  saveEveryMs:   10000,
+  offlineCapH:   8,
+  debtHalfPoint: 50,     // integrity = 1 / (1 + debt/50)
+  brownoutRunway:5,      // seconds of burn you must bank to exit brownout
+  clickBase:     1,
+  reviewBase:    1,
+  logMax:        8,
+  saveKey:       'agentOrgIdle.v1'
+};
+
+const CHATTER = [
+  'stage passed clean.', 'day-lock written.', 'queue triaged. 0 open.',
+  'git pull: already up to date.', 'rc=0 in 12s.', 'inbox empty, skipping.',
+  'backoff 300s, attempt 2/4.', 'markers purged.'
+];
+const LIES = [
+  'DONE. (no diff written)', 'rc=0 in 4s — nothing happened.',
+  'MAX TURNS without DONE.', 'reasoning leaked past the footer.',
+  'claimed success. shrink-guard says otherwise.', 'rc=124 — timeout.',
+  'wrote the report. to nowhere.', 'DONE with embedded commands.',
+  'counted 0 items. there were 6.'
+];
+
+/* ============================================================================
+   STATE
+   ========================================================================= */
+
+function freshState() {
+  const s = {
+    tokens: 0, debt: 0, lifetime: 0,
+    counts: {}, owned: {},        // owned = upgrades purchased
+    brownout: false, last: Date.now(),
+    // prestige hook — v2 lives here, engine already reads it so adding
+    // MIGRATE HOST later needs no rewrite.
+    conventions: 0
+  };
+  SEATS.forEach(x => s.counts[x.id] = 0);
+  return s;
+}
+let state = freshState();
+let defectAcc = 0, clearAcc = 0, saveAcc = 0;
+
+/* ============================================================================
+   ENGINE  —  generic over SEATS / UPGRADES. No seat is named below this line.
+   ========================================================================= */
+
+const has = id => !!state.owned[id];
+
+// Fold every purchased upgrade's effect into one modifier set.
+function mods() {
+  const m = { defectMult:1, burnMult:1, prodMult:1, reviewPower:CFG.reviewBase };
+  for (const u of UPGRADES) {
+    if (!has(u.id)) continue;
+    const e = u.effect;
+    if (e.type === 'reviewPower') m.reviewPower = Math.max(m.reviewPower, e.value);
+    else m[e.type] *= e.value;
+  }
+  m.prodMult *= (1 + 0.02 * state.conventions);   // prestige hook
+  return m;
+}
+
+const costOf   = s => Math.floor(s.baseCost * Math.pow(s.growth, state.counts[s.id] || 0));
+const upCostOf = u => u.cost;
+
+// Brownout gates PAID seats only. Free seats keep working — that is your way out.
+const liveCount = s => (state.brownout && s.burn > 0) ? 0 : (state.counts[s.id] || 0);
+
+const integrity = () => 1 / (1 + state.debt / CFG.debtHalfPoint);
+
+function prodPerSec(m) {
+  m = m || mods();
+  let p = 0;
+  for (const s of SEATS) p += liveCount(s) * s.rate;
+  return p * integrity() * m.prodMult;
+}
+function burnPerSec(m) {
+  m = m || mods();
+  let b = 0;
+  for (const s of SEATS) b += liveCount(s) * s.burn;
+  return b * m.burnMult;
+}
+function fullBurnPerSec(m) {           // burn if nothing were browned out
+  m = m || mods();
+  let b = 0;
+  for (const s of SEATS) b += (state.counts[s.id] || 0) * s.burn;
+  return b * m.burnMult;
+}
+function defectsPerSec(m) {
+  m = m || mods();
+  let d = 0;
+  for (const s of SEATS) d += liveCount(s) * s.defects;
+  return d * m.defectMult;
+}
+function clearsPerSec() {
+  let c = 0;
+  for (const s of SEATS) c += liveCount(s) * s.clears;
+  return c;                            // integrity does NOT throttle review
+}
+
+function unlocked(u) {
+  if (!u.need) return true;
+  for (const k in u.need) if ((state.counts[k] || 0) < u.need[k]) return false;
+  return true;
+}
+
+/* --- the tick. dt in seconds. Also used to fast-forward offline time. ---- */
+function step(dt, quiet) {
+  const m = mods();
+
+  const gain = prodPerSec(m) * dt;
+  state.tokens += gain;
+  state.lifetime += gain;
+  state.tokens -= burnPerSec(m) * dt;
+
+  if (state.tokens <= 0) {
+    state.tokens = 0;
+    if (fullBurnPerSec(m) > 0) state.brownout = true;
+  }
+  if (state.brownout && state.tokens >= fullBurnPerSec(m) * CFG.brownoutRunway) {
+    state.brownout = false;
+    if (!quiet) log('reserves recovered. seats back online.', 'g');
+  }
+
+  // Fractional accrual, not a per-tick coinflip: expected defects/sec stays
+  // exactly what the seat table advertises regardless of tick rate.
+  defectAcc += defectsPerSec(m) * dt;
+  while (defectAcc >= 1) {
+    defectAcc -= 1; state.debt += 1;
+    if (!quiet && Math.random() < 0.5) log(pick(LIES), 'd');
+  }
+
+  clearAcc += clearsPerSec() * dt;
+  while (clearAcc >= 1 && state.debt > 0) { clearAcc -= 1; state.debt -= 1; }
+  if (state.debt <= 0) { state.debt = 0; clearAcc = 0; }
+
+  if (!quiet && Math.random() < dt * 0.12) log(pick(CHATTER));
+}
+
+/* --- actions ------------------------------------------------------------ */
+function doWork() {
+  // Clicks are NOT throttled by integrity. Manual work is always honest work,
+  // which is also the only reason a collapsed org is recoverable.
+  const g = CFG.clickBase * mods().prodMult;
+  state.tokens += g; state.lifetime += g;
+  render();
+}
+function doReview() {
+  if (state.debt <= 0) return;
+  state.debt = Math.max(0, state.debt - mods().reviewPower);
+  if (state.debt === 0) log('queue clear. 0 open.', 'g');
+  render();
+}
+function buy(s) {
+  const c = costOf(s);
+  if (state.tokens < c) return;
+  state.tokens -= c;
+  state.counts[s.id] = (state.counts[s.id] || 0) + 1;
+  log('seated ' + s.name + '. (' + state.counts[s.id] + ')', 'g');
+  render();
+}
+function buyUp(u) {
+  if (has(u.id) || !unlocked(u) || state.tokens < upCostOf(u)) return;
+  state.tokens -= upCostOf(u);
+  state.owned[u.id] = true;
+  log('convention adopted: ' + u.name + '.', 'g');
+  render();
+}
+
+/* ============================================================================
+   PRESENTATION
+   ========================================================================= */
+
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+function fmt(n) {
+  if (!isFinite(n)) return '0';
+  const neg = n < 0; n = Math.abs(n);
+  let out;
+  if (n < 1000)        out = (n < 10 && n % 1 !== 0) ? n.toFixed(1) : Math.floor(n).toString();
+  else if (n < 1e6)    out = (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  else if (n < 1e9)    out = (n / 1e6).toFixed(2).replace(/\.00$/, '') + 'M';
+  else if (n < 1e12)   out = (n / 1e9).toFixed(2).replace(/\.00$/, '') + 'B';
+  else                 out = (n / 1e12).toFixed(2).replace(/\.00$/, '') + 'T';
+  return (neg ? '-' : '') + out;
+}
+const rate = n => (n >= 0 ? '' : '-') + fmt(Math.abs(n)) + '/s';
+
+const logLines = [];
+function log(msg, cls) {
+  logLines.push({ msg, cls });
+  while (logLines.length > CFG.logMax) logLines.shift();
+  $('log').innerHTML = logLines
+    .map(l => '<div class="' + (l.cls || '') + '">' + l.msg + '</div>').join('');
+}
+
+let built = false;
+function build() {
+  $('seats').innerHTML = SEATS.map(s => `
+    <tr id="row-${s.id}">
+      <td><div class="nm">${s.name}</div><div class="fl">${s.flavor}</div></td>
+      <td class="n"><span class="cnt" id="c-${s.id}">0</span></td>
+      <td class="n">${s.rate ? fmt(s.rate) + '/s' : '&mdash;'}</td>
+      <td class="n">${s.burn ? '<span class="neg">' + fmt(s.burn) + '/s</span>' : '&mdash;'}</td>
+      <td class="n">${s.clears ? '<span class="pos">-' + s.clears + '/s</span>'
+                               : (s.defects ? '<span class="neg">+' + s.defects + '/s</span>' : '&mdash;')}</td>
+      <td class="n"><button id="b-${s.id}">buy <span id="p-${s.id}"></span></button></td>
+    </tr>`).join('');
+  SEATS.forEach(s => $('b-' + s.id).onclick = () => buy(s));
+
+  $('ups').innerHTML = UPGRADES.map(u => `
+    <tr id="urow-${u.id}">
+      <td><div class="nm">${u.name}</div><div class="fl">${u.desc}</div></td>
+      <td class="n"><button id="ub-${u.id}"><span id="up-${u.id}"></span></button></td>
+    </tr>`).join('');
+  UPGRADES.forEach(u => $('ub-' + u.id).onclick = () => buyUp(u));
+
+  $('work').onclick   = doWork;
+  $('review').onclick = doReview;
+  $('wipe').onclick   = () => {
+    if (!confirm('Wipe the save and start over?')) return;
+    localStorage.removeItem(CFG.saveKey);
+    state = freshState(); logLines.length = 0;
+    log('cold start.'); render();
+  };
+  built = true;
+}
+
+function render() {
+  if (!built) return;
+  const m = mods();
+  const p = prodPerSec(m), b = burnPerSec(m), n = p - b;
+
+  $('tok').textContent  = fmt(state.tokens);
+  $('prod').textContent = rate(p);
+  $('burn').textContent = rate(b);
+  $('net').textContent  = rate(n);
+  $('net').className    = n < 0 ? 'neg' : 'pos';
+  $('mult').textContent = Math.round(integrity() * 100) + '%';
+  $('mult').className   = integrity() < 0.7 ? 'neg' : '';
+  $('brown').style.display = state.brownout ? 'block' : 'none';
+
+  $('clickv').textContent  = '+' + fmt(CFG.clickBase * m.prodMult);
+  $('reviewv').textContent = state.debt > 0 ? '-' + m.reviewPower : '';
+  $('review').disabled     = state.debt <= 0;
+
+  $('debt').textContent = fmt(state.debt);
+  const c = clearsPerSec(), d = defectsPerSec(m);
+  $('debtnote').textContent =
+    state.debt <= 0 ? 'clean.'
+    : c >= d        ? 'reviewer is keeping up. clearing ' + fmt(c - d) + '/s.'
+    : c > 0         ? 'reviewer is underwater. debt +' + fmt(d - c) + '/s.'
+    :                 'no reviewer seated. output at ' + Math.round(integrity() * 100) + '%.';
+
+  for (const s of SEATS) {
+    const cost = costOf(s), own = state.counts[s.id] || 0;
+    $('c-' + s.id).textContent = own;
+    $('p-' + s.id).textContent = fmt(cost);
+    $('b-' + s.id).disabled = state.tokens < cost;
+    $('row-' + s.id).classList.toggle('locked', own === 0 && state.tokens < cost * 0.4);
+  }
+  for (const u of UPGRADES) {
+    const ok = unlocked(u), bought = has(u.id);
+    $('urow-' + u.id).classList.toggle('locked', !ok && !bought);
+    const btn = $('ub-' + u.id);
+    $('up-' + u.id).textContent = bought ? 'adopted' : (ok ? 'buy ' + fmt(upCostOf(u)) : 'locked');
+    btn.disabled = bought || !ok || state.tokens < upCostOf(u);
+  }
+}
+
+/* ============================================================================
+   PERSISTENCE
+   ========================================================================= */
+
+function save() {
+  state.last = Date.now();
+  try { localStorage.setItem(CFG.saveKey, JSON.stringify(state)); } catch (e) {}
+  $('saved').textContent = 'saved ' + new Date().toLocaleTimeString();
+}
+
+function load() {
+  let raw;
+  try { raw = localStorage.getItem(CFG.saveKey); } catch (e) { return false; }
+  if (!raw) return false;
+  let s;
+  try { s = JSON.parse(raw); } catch (e) { return false; }
+
+  state = Object.assign(freshState(), s);
+  // Reconcile against DATA so a save from an older seat table still loads.
+  SEATS.forEach(x => { if (typeof state.counts[x.id] !== 'number') state.counts[x.id] = 0; });
+  state.owned = state.owned || {};
+
+  const away = Math.min((Date.now() - (state.last || Date.now())) / 1000,
+                        CFG.offlineCapH * 3600);
+  if (away > 60) {
+    const t0 = state.tokens, d0 = state.debt;
+    // Fast-forward in 1s slices, quiet, so brownout/debt resolve honestly
+    // instead of being estimated with a closed-form guess.
+    for (let i = 0; i < Math.floor(away); i++) step(1, true);
+    const dt = state.tokens - t0, dd = state.debt - d0;
+    log('away ' + (away / 3600).toFixed(1) + 'h. ' +
+        (dt >= 0 ? '+' : '') + fmt(dt) + ' tokens.' +
+        (dd > 0 ? ' +' + fmt(dd) + ' defect debt.' : ''), dd > 0 ? 'd' : 'g');
+    if (dd > 0) log('you left the free tier running.', 'd');
+  }
+  return true;
+}
+
+/* ============================================================================
+   BOOT
+   ========================================================================= */
+
+build();
+if (!load()) log('cold start. no seats. do the work yourself.');
+render();
+
+let prev = performance.now();
+setInterval(() => {
+  const now = performance.now();
+  let dt = (now - prev) / 1000; prev = now;
+  if (dt > 1) dt = 1;                 // tabbed-out guard; offline path owns long gaps
+  step(dt, false);
+  render();
+  saveAcc += dt;
+  if (saveAcc >= CFG.saveEveryMs / 1000) { saveAcc = 0; save(); }
+}, CFG.tickMs);
+
+window.addEventListener('beforeunload', save);
+</script>
+</body>
+</html>

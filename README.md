@@ -17,13 +17,26 @@ Three forces fight each other, and that triangle is the whole game:
   Debt never announces itself; it just strangles output via
   `integrity = 1 / (1 + debt/50)`. You feel the number slow before you understand why.
 
-Free-agent spam looks optimal for about two minutes and then collapses. That
-collapse is the point, not a bug.
+Debt is a **leaky bucket**: it decays at 5%/sec, so it plateaus at
+`defects ÷ 0.05` rather than running to infinity. That plateau is the entire game.
+Free-agent spam doesn't kill you — it *caps* you. Simulated over 30 minutes:
+
+| strategy | net @30min | integrity | trajectory |
+|---|---|---|---|
+| spam the free tier | 3.4/s | 36% (plateau) | stagnant forever |
+| disciplined pivot | 23.1/s | 61% and rising | compounding |
+
+Cheap agents don't cost you a loss. They cost you a ceiling. That's the lesson,
+and it's the true one.
 
 Two escape hatches, both deliberate:
 - **Clicks bypass integrity.** Manual work is always honest work — it's the only
   reason a collapsed org is recoverable.
 - **Manual Review** clears debt by hand before you can afford a Reviewer seat.
+
+**Opus is a scaling unlock, not an early buy.** Its 75/s burn is flat while its
+benefit scales with your raw output. At ~200/s raw it's roughly break-even; at
+1000/s raw it pays 5x. Buying it early browns you out. That's intended.
 
 ## Architecture — the one rule
 

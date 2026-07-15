@@ -193,7 +193,16 @@ const CFG = {
   clickBase:     1,
   reviewBase:    1,
   logMax:        8,
-  saveKey:       'agentOrgIdle.v1'
+  saveKey:       'agentOrgIdle.v1',
+
+  // Leaky bucket. THE load-bearing constant — without it the game is unwinnable.
+  // Debt decays proportionally, so it settles at (defects/sec ÷ debtDecay) instead of
+  // running to infinity. That plateau is what makes the defect mechanic a tradeoff
+  // curve rather than a trapdoor: a free-tier org stabilises at bad-but-alive
+  // integrity, and seating a Reviewer buys the plateau back down.
+  // Flavour: some drift always gets caught mechanically. The worse it is, the more
+  // obvious it is, the faster some of it surfaces.
+  debtDecay:     0.05
 };
 
 const CHATTER = [
@@ -319,7 +328,9 @@ function step(dt, quiet) {
 
   clearAcc += clearsPerSec() * dt;
   while (clearAcc >= 1 && state.debt > 0) { clearAcc -= 1; state.debt -= 1; }
-  if (state.debt <= 0) { state.debt = 0; clearAcc = 0; }
+
+  state.debt -= state.debt * CFG.debtDecay * dt;   // leaky bucket — see CFG.debtDecay
+  if (state.debt < 0.5) { state.debt = 0; clearAcc = 0; }
 
   if (!quiet && Math.random() < dt * 0.12) log(pick(CHATTER));
 }
@@ -434,11 +445,15 @@ function render() {
 
   $('debt').textContent = fmt(state.debt);
   const c = clearsPerSec(), d = defectsPerSec(m);
+  // Show the PLATEAU, not just the rate. Debt settles where defects = clears + debt*decay,
+  // so the honest thing to surface is where you're heading, not where you are.
+  const plateau = d > c ? (d - c) / CFG.debtDecay : 0;
+  const pInteg  = Math.round(100 / (1 + plateau / CFG.debtHalfPoint));
   $('debtnote').textContent =
-    state.debt <= 0 ? 'clean.'
-    : c >= d        ? 'reviewer is keeping up. clearing ' + fmt(c - d) + '/s.'
-    : c > 0         ? 'reviewer is underwater. debt +' + fmt(d - c) + '/s.'
-    :                 'no reviewer seated. output at ' + Math.round(integrity() * 100) + '%.';
+    state.debt <= 0 && d <= 0 ? 'clean.'
+    : d <= c ? 'reviewer is ahead of the drift. debt clearing to zero.'
+    : 'settling toward ~' + fmt(plateau) + ' debt — ' + pInteg + '% integrity'
+      + (c > 0 ? '. reviewer is helping but underwater.' : '. no reviewer seated.');
 
   for (const s of SEATS) {
     const cost = costOf(s), own = state.counts[s.id] || 0;

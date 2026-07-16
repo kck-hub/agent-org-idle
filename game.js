@@ -1529,12 +1529,55 @@ class PixelWorldRenderer {
     this.drawTrees(ctx, time);
     this.drawGrass(ctx, time);
     this.drawSolar(ctx, time);
+    this.drawAtmosphere(ctx, time);
     this.drawFireflies(ctx, time);
     this.drawRelayAura(ctx, time);
     this.updateLeaves(ctx, time, dt);
     this.updateButterflies(ctx, time, dt);
     this.updateBirds(ctx, time, dt);
     ctx.globalAlpha = 1;
+  }
+
+  drawAtmosphere(ctx, time) {
+    // Slow, layered pollen and wind motes give the static map a sense of depth.
+    // Every orbit is deterministic, so particles never pop when the frame rate dips.
+    ctx.save();
+    // Source-over avoids black tile artifacts in browsers that composite a
+    // transparent canvas backing store in chunks.
+    ctx.globalCompositeOperation = "source-over";
+    for (let i = 0; i < 30; i += 1) {
+      const seed = hashNoise(i * 19.73 + 8.4);
+      const depth = 0.35 + hashNoise(i * 7.17) * 0.65;
+      const cycle = 22 + hashNoise(i * 31.9) * 34;
+      const progress = fract(time / cycle + seed);
+      const baseX = hashNoise(i * 43.11) * 1840 - 84;
+      const drift = (progress - 0.5) * (180 + depth * 240);
+      const x = fract((baseX + drift) / 1750 + 1) * 1750 - 39;
+      const baseY = 80 + hashNoise(i * 67.3) * 770;
+      const y = baseY + Math.sin(time * (0.16 + seed * 0.12) + i) * (8 + depth * 12);
+      const wind = this.wind(x, y, time);
+      const alpha = Math.sin(progress * Math.PI) * (0.055 + depth * 0.12) * (0.75 + wind * 0.5);
+      const size = depth > 0.72 ? 2 : 1;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = depth > 0.62 ? "#fff7b0" : "#c7fff0";
+      ctx.fillRect(Math.round(x), Math.round(y), size + (wind > 0.65 ? 2 : 0), size);
+    }
+
+    // Rare translucent gust ribbons travel across the canopy without forming
+    // an obvious repeating sweep.
+    const gust = Math.max(0, valueNoise1(time * 0.035 + 12.4) - 0.62) / 0.38;
+    if (gust > 0.02) {
+      const sweep = fract(time * 0.022 + 0.18) * 2100 - 220;
+      const gradient = ctx.createLinearGradient(sweep - 150, 0, sweep + 150, 0);
+      gradient.addColorStop(0, "rgba(205,255,229,0)");
+      gradient.addColorStop(0.5, `rgba(225,255,235,${0.035 * gust})`);
+      gradient.addColorStop(1, "rgba(205,255,229,0)");
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = gradient;
+      ctx.transform(1, 0, -0.18, 1, 0, 0);
+      ctx.fillRect(sweep - 150, 0, 300, 941);
+    }
+    ctx.restore();
   }
 
   drawWater(ctx, time) {

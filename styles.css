@@ -5836,3 +5836,308 @@ select:focus-visible,
 .game.motion-off .minion-sprite.robot-sprite:not(#\#) {
   animation: none !important;
 }
+
+/* ===========================================================================
+   FLUID MOTION PASS — crisp sprite frames riding on organic body movement
+   ========================================================================== */
+
+/* Preserve constant ground speed while making state changes feel less abrupt. */
+.agent {
+  transition:
+    left var(--walk-time, 900ms) linear,
+    top var(--walk-time, 900ms) linear,
+    filter 240ms ease-out !important;
+  will-change: left, top;
+}
+
+.agent-sprite.robot-sprite,
+.agent .agent-sprite {
+  transition:
+    filter 260ms ease,
+    scale 360ms cubic-bezier(.2, .85, .25, 1.25),
+    opacity 220ms ease !important;
+  will-change: transform, background-position;
+}
+
+/* The sheet remains stepped; only the body's rise, settle, and momentum are smooth. */
+.agent.is-walking .agent-sprite:not(#\#) {
+  animation:
+    sprite-walk-strip var(--walk-cycle, .54s) steps(4) infinite,
+    fluid-walk-body calc(var(--walk-cycle, .54s) * 2) cubic-bezier(.45, 0, .55, 1) infinite !important;
+}
+
+@keyframes fluid-walk-body {
+  0%, 50%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scaleY(1); }
+  12.5% { transform: translate3d(-1px, -2.5px, 0) rotate(-1.2deg) scaleY(1.018); }
+  25% { transform: translate3d(0, -1px, 0) rotate(-.35deg) scaleY(.988); }
+  37.5% { transform: translate3d(1px, -3px, 0) rotate(.9deg) scaleY(1.02); }
+  62.5% { transform: translate3d(1px, -2.5px, 0) rotate(1.2deg) scaleY(1.018); }
+  75% { transform: translate3d(0, -1px, 0) rotate(.35deg) scaleY(.988); }
+  87.5% { transform: translate3d(-1px, -3px, 0) rotate(-.9deg) scaleY(1.02); }
+}
+
+.agent:not(.is-walking):not(.is-dancing):not(.is-picked-up):not(.is-dragging):not(.is-new) .agent-sprite:not(#\#) {
+  animation: fluid-idle var(--idle-cycle, 6.4s) cubic-bezier(.42, 0, .58, 1) infinite !important;
+}
+
+@keyframes fluid-idle {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0) scale(1, 1); }
+  18% { transform: translate3d(0, -.7px, 0) rotate(-.25deg) scale(1.002, 1.012); }
+  36% { transform: translate3d(.4px, 0, 0) rotate(.2deg) scale(1.006, .994); }
+  58% { transform: translate3d(0, -1.5px, 0) rotate(.5deg) scale(.996, 1.018); }
+  72% { transform: translate3d(-.5px, -.3px, 0) rotate(-.35deg) scale(1.004, .998); }
+  88% { transform: translate3d(0, -.8px, 0) rotate(.15deg) scale(1, 1.008); }
+}
+
+/* Prime-number offsets keep a crowd from inhaling and stepping in unison. */
+.agent:nth-child(4n + 2) .agent-sprite { animation-delay: -2.13s !important; }
+.agent:nth-child(4n + 3) .agent-sprite { animation-delay: -3.77s !important; }
+.agent:nth-child(4n) .agent-sprite { animation-delay: -5.09s !important; }
+
+.agent::after {
+  transition: opacity 260ms ease, transform 300ms ease, filter 300ms ease !important;
+}
+.agent.is-walking::after {
+  animation: fluid-footfall-shadow calc(var(--walk-cycle, .54s) * 2) ease-in-out infinite !important;
+}
+@keyframes fluid-footfall-shadow {
+  0%, 50%, 100% { transform: scaleX(1); opacity: .25; }
+  25%, 75% { transform: scaleX(.82); opacity: .17; }
+}
+
+.agent.is-dancing .agent-sprite:not(#\#) {
+  animation: fluid-agent-dance 1.05s cubic-bezier(.37, 0, .2, 1) infinite !important;
+}
+@keyframes fluid-agent-dance {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0) scaleY(1); }
+  16% { transform: translate3d(-3px, -5px, 0) rotate(-5deg) scaleY(1.04); }
+  34% { transform: translate3d(-1px, 1px, 0) rotate(-1deg) scaleY(.93); }
+  53% { transform: translate3d(3px, -7px, 0) rotate(6deg) scaleY(1.06); }
+  72% { transform: translate3d(1px, 0, 0) rotate(2deg) scaleY(.95); }
+  88% { transform: translate3d(-1px, -2px, 0) rotate(-2deg) scaleY(1.01); }
+}
+
+.environment-pulse {
+  animation: fluid-environment-ping 1.65s cubic-bezier(.16, .75, .25, 1) forwards !important;
+}
+@keyframes fluid-environment-ping {
+  0% { opacity: 0; scale: .22; filter: blur(2px); }
+  12% { opacity: .95; filter: blur(0); }
+  55% { opacity: .45; }
+  100% { opacity: 0; scale: 2.85; filter: blur(1px); }
+}
+
+.agent-label {
+  transition: opacity 180ms ease, transform 240ms cubic-bezier(.2, .8, .2, 1) !important;
+}
+
+.minion-sprite {
+  animation: fluid-minion-hover 4.8s ease-in-out infinite !important;
+}
+.minion:nth-child(2n) .minion-sprite { animation-delay: -2.7s !important; }
+.minion:nth-child(3n) .minion-sprite { animation-delay: -1.4s !important; }
+@keyframes fluid-minion-hover {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+  28% { transform: translate3d(-.5px, -2px, 0) rotate(-.4deg); }
+  61% { transform: translate3d(.5px, -3px, 0) rotate(.5deg); }
+  82% { transform: translate3d(0, -.7px, 0) rotate(-.2deg); }
+}
+
+.game.motion-off .agent { transition-duration: .001ms !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .agent { transition-duration: .001ms !important; }
+  .agent-sprite.robot-sprite,
+  .agent .agent-sprite,
+  .minion-sprite { animation: none !important; }
+}
+
+/* ===========================================================================
+   COMPLETE SPRITE MOTION + READABILITY PASS
+   ========================================================================== */
+
+/* Every sprite family owns a four-frame 384x96 strip. These shared rules let
+   field agents, habitat workers, and UI previews use the same animation path. */
+.minion-sprite,
+.model-glyph .robot-sprite,
+.roster-sprite .robot-sprite,
+.agent-mini .robot-sprite {
+  --preview-frame-size: 100%;
+  background-repeat: no-repeat !important;
+  background-position: 0 0 !important;
+}
+
+.minion-sprite.sprite-hy3,
+.model-glyph:hover .sprite-hy3,
+.model-card:focus-within .sprite-hy3,
+.roster-card:hover .sprite-hy3,
+.agent-mini:hover .sprite-hy3 { background-image: url("assets/robots/hy3-walk.png") !important; }
+.minion-sprite.sprite-flash,
+.model-glyph:hover .sprite-flash,
+.model-card:focus-within .sprite-flash,
+.roster-card:hover .sprite-flash,
+.agent-mini:hover .sprite-flash { background-image: url("assets/robots/flash-walk.png") !important; }
+.minion-sprite.sprite-nano,
+.model-glyph:hover .sprite-nano,
+.model-card:focus-within .sprite-nano,
+.roster-card:hover .sprite-nano,
+.agent-mini:hover .sprite-nano { background-image: url("assets/robots/nano-walk.png") !important; }
+.minion-sprite.sprite-glm,
+.model-glyph:hover .sprite-glm,
+.model-card:focus-within .sprite-glm,
+.roster-card:hover .sprite-glm,
+.agent-mini:hover .sprite-glm { background-image: url("assets/robots/glm-walk.png") !important; }
+.minion-sprite.sprite-sonnet,
+.model-glyph:hover .sprite-sonnet,
+.model-card:focus-within .sprite-sonnet,
+.roster-card:hover .sprite-sonnet,
+.agent-mini:hover .sprite-sonnet { background-image: url("assets/robots/sonnet-walk.png") !important; }
+.minion-sprite.sprite-opus,
+.model-glyph:hover .sprite-opus,
+.model-card:focus-within .sprite-opus,
+.roster-card:hover .sprite-opus,
+.agent-mini:hover .sprite-opus { background-image: url("assets/robots/opus-walk.png") !important; }
+.minion-sprite.sprite-architect,
+.model-glyph:hover .sprite-architect,
+.model-card:focus-within .sprite-architect,
+.roster-card:hover .sprite-architect,
+.agent-mini:hover .sprite-architect { background-image: url("assets/robots/architect-walk.png") !important; }
+.minion-sprite.sprite-volt,
+.model-glyph:hover .sprite-volt,
+.model-card:focus-within .sprite-volt,
+.roster-card:hover .sprite-volt,
+.agent-mini:hover .sprite-volt { background-image: url("assets/robots/volt-walk.png") !important; }
+.minion-sprite.sprite-ember,
+.model-glyph:hover .sprite-ember,
+.model-card:focus-within .sprite-ember,
+.roster-card:hover .sprite-ember,
+.agent-mini:hover .sprite-ember { background-image: url("assets/robots/ember-walk.png") !important; }
+.minion-sprite.sprite-prism,
+.model-glyph:hover .sprite-prism,
+.model-card:focus-within .sprite-prism,
+.roster-card:hover .sprite-prism,
+.agent-mini:hover .sprite-prism { background-image: url("assets/robots/prism-walk.png") !important; }
+.minion-sprite.sprite-sage,
+.model-glyph:hover .sprite-sage,
+.model-card:focus-within .sprite-sage,
+.roster-card:hover .sprite-sage,
+.agent-mini:hover .sprite-sage { background-image: url("assets/robots/sage-walk.png") !important; }
+.minion-sprite.sprite-wrench,
+.model-glyph:hover .sprite-wrench,
+.model-card:focus-within .sprite-wrench,
+.roster-card:hover .sprite-wrench,
+.agent-mini:hover .sprite-wrench { background-image: url("assets/robots/wrench-walk.png") !important; }
+.minion-sprite.sprite-relic,
+.model-glyph:hover .sprite-relic,
+.model-card:focus-within .sprite-relic,
+.roster-card:hover .sprite-relic,
+.agent-mini:hover .sprite-relic { background-image: url("assets/robots/relic-walk.png") !important; }
+
+.minion-sprite {
+  background-size: 400% 100% !important;
+  animation:
+    preview-walk-strip var(--walk-cycle, .62s) steps(4) infinite,
+    habitat-walk-body calc(var(--walk-cycle, .62s) * 2) ease-in-out infinite !important;
+}
+@keyframes habitat-walk-body {
+  0%, 50%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-2px) rotate(-1deg); }
+  75% { transform: translateY(-2px) rotate(1deg); }
+}
+
+.model-glyph:hover .robot-sprite,
+.model-card:focus-within .model-glyph .robot-sprite,
+.roster-card:hover .roster-sprite .robot-sprite,
+.agent-mini:hover .robot-sprite {
+  background-size: 400% 100% !important;
+  animation: preview-walk-strip var(--walk-cycle, .62s) steps(4) infinite !important;
+}
+
+@keyframes preview-walk-strip {
+  from { background-position-x: 0; }
+  to { background-position-x: 133.333%; }
+}
+
+/* Raise the tiny pixel type without globally zooming panels or the map. */
+.dock,
+.hud,
+.action-bar,
+.feed,
+.quest-card,
+.inspector,
+.toast { font-size: 11px; }
+
+.dock-header .eyebrow,
+.command-center-callout small,
+.command-view-button b,
+.model-meta,
+.owned-pill,
+.tier-badge,
+.tier-lock,
+.roster-provider,
+.roster-card small,
+.synergy-card small,
+.habitat-copy small,
+.hud-stat small,
+.secondary-action small,
+.minion-name,
+.plot-plate small { font-size: 8px !important; line-height: 1.35; }
+
+.tab,
+.section-note,
+.rate-strip-note,
+.model-stats,
+.model-role,
+.feed-lines div,
+.plot-plate b,
+.agent-mode,
+.agent-stack-count { font-size: 9px !important; line-height: 1.35; }
+
+.dock-header p,
+.command-brief p,
+.tier-heading p,
+.model-copy p,
+.roster-card p,
+.synergy-card p,
+.roster-empty p,
+.habitat-head p,
+.map-hint,
+.toast { font-size: 10px !important; line-height: 1.45; }
+
+.model-name-line strong,
+.roster-card strong,
+.synergy-card strong,
+.habitat-head strong,
+.habitat-copy b,
+.secondary-action strong,
+.buy-button,
+.upgrade-button,
+.mode-switch button { font-size: 11px !important; line-height: 1.25; }
+
+.dock-header h2 { font-size: 17px !important; }
+.section-heading h3 { font-size: 14px !important; }
+.tier-heading h4 { font-size: 12px !important; }
+.hud-stat b { font-size: 11px !important; }
+.hud-primary .hud-value { font-size: 17px !important; }
+.agent-label { font-size: 10px !important; line-height: 1.25; }
+.agent-speech { font-size: 10px !important; line-height: 1.4; }
+
+@media (max-width: 820px) {
+  .dock-header h2 { font-size: 15px !important; }
+  .hud-primary .hud-value { font-size: 15px !important; }
+  .model-copy p,
+  .command-brief p,
+  .tier-heading p { font-size: 9px !important; }
+}
+
+.game.motion-off .minion-sprite,
+.game.motion-off .model-glyph .robot-sprite,
+.game.motion-off .roster-sprite .robot-sprite,
+.game.motion-off .agent-mini .robot-sprite { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .minion-sprite,
+  .model-glyph .robot-sprite,
+  .roster-sprite .robot-sprite,
+  .agent-mini .robot-sprite { animation: none !important; }
+}

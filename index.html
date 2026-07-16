@@ -3,19 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#173b2b">
+  <meta name="theme-color" content="#0a1a14">
   <title>Agent Org Idle — Field Ops</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="game" id="game">
     <section class="map-shell" id="map" aria-label="Agent operations campus" aria-describedby="map-instructions">
-      <p class="sr-only" id="map-instructions">One representative robot per owned model roams the campus paths. Its badge shows total ownership. Drag it to another path, use arrow keys to choose a connected route, or select it to inspect aggregate stats and change the whole model team's reasoning depth. Select the central Command Center building to open the model market.</p>
+      <p class="sr-only" id="map-instructions">One representative robot per owned model roams the campus paths. Its badge shows total ownership. Pick it up and drop it anywhere — near a resonance pylon or the fountain it earns placement bonuses; on invalid ground it walks back to the nearest path. Use arrow keys to choose a connected route, or select it to change the model team's reasoning depth. Select the central Command Center building to open the model market. Charged pylons can be tapped for a resonance burst. The Field Relay in the open meadow charges while agents visit — tap it when ready to broadcast a temporary org-wide production boost.</p>
       <div class="world" id="world">
         <img class="map-art" src="assets/ops-campus.png" alt="" draggable="false">
         <canvas class="world-canvas" id="world-canvas" width="1672" height="941" aria-hidden="true"></canvas>
         <div class="ambient-field" id="ambient-field" aria-hidden="true"></div>
+        <div class="plots" id="plots" aria-label="Deployment zones"></div>
+        <div class="minions" id="minions" aria-hidden="true"></div>
+        <div class="pylons" id="pylons" aria-label="Resonance pylons"></div>
+        <button class="field-relay" id="field-relay" type="button" aria-label="Field relay in the open meadow">
+          <i class="relay-dish" aria-hidden="true"></i>
+          <i class="relay-beam" aria-hidden="true"></i>
+          <i class="relay-ring" aria-hidden="true"></i>
+          <span class="relay-tip" aria-hidden="true"></span>
+          <span class="relay-callout"><b>Field Relay</b><small id="relay-status">broadcast idle</small></span>
+        </button>
         <div class="agents" id="agents"></div>
+        <div class="fx-layer" id="fx" aria-hidden="true"></div>
         <button class="command-center-hotspot" id="command-center-hotspot" type="button" aria-controls="dock" aria-haspopup="dialog" data-command-action="open-full">
           <span class="command-center-scan" aria-hidden="true"></span>
           <span class="command-center-callout"><b>Command Center</b><small>Enter model market</small></span>
@@ -23,44 +34,48 @@
       </div>
       <div class="map-wash" aria-hidden="true"></div>
 
-      <header class="topbar glass">
-        <div class="brand-block">
-          <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div>
-            <p class="eyebrow">Field operations</p>
-            <h1>Agent Org Idle</h1>
-          </div>
-        </div>
+      <header class="topbar glass" aria-label="Organization status">
+        <div class="brand-mark" aria-hidden="true" title="Agent Org Idle"><i></i><i></i><i></i></div>
 
-        <div class="hud" aria-label="Organization status">
-          <div class="hud-primary">
-            <span class="hud-value" id="tok">0</span>
-            <span class="hud-label">tokens</span>
+        <div class="hud">
+          <div class="hud-primary hud-chip" title="Organization tokens">
+            <i class="px-icon icon-token" aria-hidden="true"></i>
+            <span><b class="hud-value" id="tok">0</b><small class="hud-label">TOKENS</small></span>
           </div>
-          <div class="hud-stat">
+          <div class="hud-stat hud-chip hud-level" title="Organization level and experience">
+            <span class="level-badge" id="org-level">Lv 1</span>
+            <span class="level-copy">
+              <b id="org-exp">0/25 XP</b>
+              <small class="hud-label">level</small>
+              <i class="exp-track" aria-hidden="true"><b id="org-exp-bar"></b></i>
+            </span>
+          </div>
+          <div class="hud-stat hud-chip">
             <span class="status-dot is-good" id="netdot"></span>
             <span><b id="net">0/s</b><small>net</small></span>
           </div>
-          <div class="hud-stat hud-wide">
+          <div class="hud-stat hud-chip hud-wide">
             <span class="ring" id="integrity-ring"><i></i></span>
             <span><b id="mult">100%</b><small>integrity</small></span>
           </div>
-          <div class="hud-stat hud-wide">
+          <div class="hud-stat hud-chip hud-wide">
             <span class="debt-icon" aria-hidden="true"></span>
             <span><b id="debt">0</b><small>defects</small></span>
           </div>
         </div>
 
-        <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="true" aria-keyshortcuts="M" aria-label="Toggle world motion">
-          <span class="motion-toggle-icon" aria-hidden="true"><i></i></span>
-          <span id="motion-label">Motion on</span>
-        </button>
-        <button class="icon-button panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-controls="dock" aria-label="Toggle Command Center">
-          <span></span><span></span><span></span>
-        </button>
-        <button class="map-only-button" id="hud-hide" type="button" aria-label="Hide interface and view the map">
-          <span aria-hidden="true">◇</span> Map only
-        </button>
+        <div class="topbar-tools">
+          <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="true" aria-keyshortcuts="M" aria-label="Toggle world motion">
+            <span class="motion-toggle-icon" aria-hidden="true"><i></i></span>
+            <span id="motion-label">Motion on</span>
+          </button>
+          <button class="map-only-button" id="hud-hide" type="button" aria-label="Hide interface and view the map">
+            <span aria-hidden="true">◇</span> Map only
+          </button>
+          <button class="icon-button panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-controls="dock" aria-label="Toggle Command Center">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
       </header>
 
       <div class="brownout glass" id="brown" role="status">
@@ -68,14 +83,23 @@
         Paid agents are resting. Build a five-second token reserve to bring them back.
       </div>
 
+      <section class="guide-card glass" id="guide-card" aria-label="How to progress">
+        <div class="guide-head">
+          <strong>MISSION</strong>
+          <span id="guide-step">1/8</span>
+        </div>
+        <p id="guide-text">Ship tasks until you have 15 tokens (tap Ship a task).</p>
+      </section>
+
       <section class="action-dock glass" aria-label="Manual actions">
         <button class="primary-action" id="work" type="button">
-          <span class="action-symbol" aria-hidden="true">+</span>
-          <span><strong>Ship a task</strong><small>honest work <b id="clickv">+1</b></small></span>
+          <span class="action-symbol ship-glyph" aria-hidden="true"><i></i></span>
+          <span><strong>Ship a task</strong><small><b id="clickv">+1</b> honest work · <em id="burst-hint">sprint ready</em></small></span>
+          <i class="burst-meter" aria-hidden="true"><b id="burst-meter"></b></i>
         </button>
         <button class="secondary-action" id="review" type="button" disabled>
           <span class="review-symbol" aria-hidden="true"></span>
-          <span><strong>Review queue</strong><small id="reviewv">queue clean</small></span>
+          <span><strong>Review queue</strong><small><em>clear defects</em> · <b id="reviewv">queue clean</b></small></span>
         </button>
       </section>
 
@@ -87,7 +111,7 @@
         <div id="log" class="feed-lines"></div>
       </section>
 
-      <div class="map-hint glass" id="map-hint">Select the Command Center to build your team. Agents roam the campus paths.</div>
+      <div class="map-hint glass is-hidden" id="map-hint" hidden>Ship a task until you have 15 tokens, then open the Command Center.</div>
     </section>
 
     <button class="command-backdrop" id="command-backdrop" type="button" tabindex="-1" data-command-action="close" aria-label="Close Command Center"></button>
@@ -119,6 +143,7 @@
 
       <nav class="tabs" role="tablist" aria-label="Operations sections">
         <button class="tab is-active" id="tab-agents" type="button" role="tab" data-panel="agents-panel" aria-controls="agents-panel" aria-selected="true"><span aria-hidden="true">◆</span> Models</button>
+        <button class="tab" id="tab-habitats" type="button" role="tab" data-panel="habitats-panel" aria-controls="habitats-panel" aria-selected="false" tabindex="-1">Habitats</button>
         <button class="tab" id="tab-systems" type="button" role="tab" data-panel="systems-panel" aria-controls="systems-panel" aria-selected="false" tabindex="-1">Systems</button>
         <button class="tab" id="tab-roster" type="button" role="tab" data-panel="roster-panel" aria-controls="roster-panel" aria-selected="false" tabindex="-1">Roster</button>
       </nav>
@@ -149,6 +174,17 @@
               <span class="section-note">Reasoning mode applies to the next hire</span>
             </div>
             <div class="model-list" id="seats"></div>
+          </section>
+
+          <section class="panel" id="habitats-panel" role="tabpanel" aria-labelledby="tab-habitats" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Deployment zones</p>
+                <h3>Habitat plots</h3>
+              </div>
+              <span class="section-note">Foundation models generate steady tokens, immune to defects</span>
+            </div>
+            <div class="habitat-list" id="habitats"></div>
           </section>
 
           <section class="panel" id="systems-panel" role="tabpanel" aria-labelledby="tab-systems" hidden>
@@ -184,9 +220,14 @@
       </div>
 
       <footer class="dock-footer">
-        <div class="save-state"><i></i><span id="saved">Local save ready</span></div>
-        <span class="command-legal">Unofficial simulation · model and company names belong to their owners</span>
-        <button class="quiet-button" id="wipe" type="button">Reset world</button>
+        <div class="save-state"><i></i><span id="saved">Autosaves in this browser</span></div>
+        <div class="save-actions">
+          <button class="quiet-button" id="export-save" type="button" title="Download a save file">Export save</button>
+          <button class="quiet-button" id="import-save" type="button" title="Load a save file">Import save</button>
+          <input id="import-file" type="file" accept="application/json,.json" hidden>
+          <button class="quiet-button" id="wipe" type="button">Reset world</button>
+        </div>
+        <span class="command-legal">Progress autosaves locally · export a file to keep a backup</span>
       </footer>
     </aside>
 

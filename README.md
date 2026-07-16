@@ -2,8 +2,10 @@
 
 A map-first idle game about building an AI agent organization. Each owned model
 family gets one draggable field robot, with a count badge representing every
-purchased seat in that family. Map position is playful and cosmetic; model
-choice and reasoning depth drive the economy.
+purchased seat in that family. Placement now matters: representatives standing
+inside a resonance pylon's aura (or at the central fountain) buff their whole
+family (+15% output, −20% defect drift), and good positioning multiplies the
+manual sprint burst.
 
 ## Play locally
 
@@ -27,14 +29,41 @@ Open `http://127.0.0.1:4173/`.
 5. Use **Review queue** when defect debt rises, then adopt Systems upgrades as
    their roster requirements unlock.
 
-Representative robots walk, talk, and stop at the fountain, cave, solar array,
-beacons, bridges, training yard, and Command Center on their own. Buying more of
-the same model increases its badge and aggregate stats instead of crowding the
-map. Dragging snaps the representative to the nearest safe path segment; it can
-never be placed in water or scenery and its location never changes production
-math. Use **Motion on/off** or press
-`M` to control world animation, and press `H` for the map-only view. The first
-visit follows the system motion preference; an explicit in-game choice is saved.
+Representative robots walk, talk, pause at scenic spots, and route to points of
+interest with A* on their own. Buying more of the same model increases its badge
+and aggregate stats instead of crowding the map. Pick a robot up (the god hand)
+and drop it anywhere: on walkable stone it settles in place; on grass, water, or
+scenery it walks back to the nearest reachable path without wading through the
+river. Use **Motion on/off** or press `M` to control world animation, and press
+`H` for the map-only view. The first visit follows the system motion preference;
+an explicit in-game choice is saved.
+
+New systems in v2:
+
+- **Resonance pylons** (the blue beacons): passive auras that buff nearby model
+  teams, plus a slow charge — tap a charged pylon for a token burst and a
+  defect sweep. The Command Center level speeds up charging.
+- **Field Relay** (open eastern meadow): charges passively and faster when
+  agents visit. Tap when ready to broadcast a token splash plus a temporary
+  org-wide production / sprint boost. Agents may dance and chat while there.
+- **Habitat plots**: the four beige plots activate into deployment zones for
+  foundation-era models (ELIZA, Word2Vec, LSTM, BERT, GPT-2, T5). They are pure
+  passive generators — no burn, no defects, immune to integrity.
+- **Sprints**: Ship a task always pays honest work; every few seconds it also
+  ships a sprint worth several seconds of production, multiplied by a focus
+  factor derived from how many families are attuned or near the Command Center.
+- **Command Center levels**: three upgrades that raise org output and pylon
+  charge speed (Systems tab).
+
+## Progress, levels, and saves
+
+The game now has a linear mission guide plus an **org level / EXP** ladder.
+Shipping tasks, deploying models, reviewing defects, and firing pylons/relays
+all grant EXP. Higher model tiers unlock at level milestones (or the original
+lifetime thresholds, whichever you hit first).
+
+Progress **autosaves in this browser**. Use **Export save** / **Import save**
+in the Command Center footer to keep a downloadable backup.
 
 ## The strategy
 
@@ -66,12 +95,16 @@ The original economy remains intact:
 - `game.js` — tiered real-model catalog, reasoning, economy, collision-safe
   placement, path-only roaming, environment interactions, a native pixel-canvas
   renderer, roster synergies, and v1/v2 save migration. The renderer uses one
-  coordinated frame clock for water flow, waterfalls, wind-reactive flowers and
-  tree tips, and falling leaves without transforming the underlying map.
+  coordinated frame clock for directional water flow, background-fitted
+  waterfalls, quiet canopy movement, and beacon light without transforming the
+  underlying map.
 - `assets/ops-campus.png` — original generated campus artwork.
 - `assets/robot-atlas.png` — standing sprite atlas used in the market.
 - `assets/robot-walk-atlas.png` — generated four-frame walk cycles for all seven
   robot archetypes.
+- `assets/robots/` — additional archetypes (`volt`, `ember`, `prism`, `sage`,
+  `wrench`, `relic`) with standing portraits and four-frame walk strips for
+  later-tier and foundation models.
 - `tools/sim.js` — balance and invariant harness.
 
 Run the balance check after changing model or upgrade numbers:

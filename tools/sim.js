@@ -123,11 +123,70 @@ check("scaled strategy adopts systems", Object.keys(scaled.T.state.owned).length
 
 {
   const T = boot();
-  const near = T.agentStats({ modelId: "ds-coder-13b", mode: "standard", x: T.MAP_BOUNDS.minX, y: T.MAP_BOUNDS.minY });
-  const far = T.agentStats({ modelId: "ds-coder-13b", mode: "standard", x: T.MAP_BOUNDS.maxX, y: T.MAP_BOUNDS.maxY });
-  const fields = ["rate", "burn", "defects", "clears"];
-  check("map position is cosmetic", fields.every(field => Math.abs(near[field] - far[field]) < 1e-12));
+  const fountain = T.PYLONS.find(pylon => pylon.id === "fountain");
 
+  // Placement now matters: an attuned representative buffs its whole family.
+  T.setState({ tokens: 0, agents: [{ uid: "a1", modelId: "ds-coder-13b", mode: "standard", x: fountain.x, y: fountain.y }] });
+  const attunedRate = T.prodPerSec();
+  check("fountain placement attunes the family", T.attunedModelIds().has("ds-coder-13b"));
+  T.state.agents[0].x = 0.9;
+  T.state.agents[0].y = 0.15;
+  const farRate = T.prodPerSec();
+  check("attunement is worth +15% output", Math.abs(attunedRate / farRate - 1.15) < 1e-9,
+    `${(attunedRate / farRate).toFixed(3)}×`);
+  check("focus factor stays within its band", T.focusFactor() >= 1 && T.focusFactor() <= 1.6);
+
+  // Habitat plots gate foundation units; their income ignores integrity.
+  const plot = T.PLOTS[0];
+  const unit = T.FOUNDRY[0];
+  T.state.tokens = 10000;
+  check("units cannot deploy to a dormant plot", T.buyUnit(unit, plot.id) === false);
+  check("plot activation is a purchase", T.buyPlot(plot) === true && T.plotState(plot.id).active);
+  check("foundation unit deploys after activation", T.buyUnit(unit, plot.id) === true && T.unitCount(unit.id) === 1);
+  const foundationClean = T.foundationPerSec();
+  T.state.debt = 100000;
+  check("foundation income ignores integrity", Math.abs(T.foundationPerSec() - foundationClean) < 1e-9 && foundationClean > 0);
+  T.state.debt = 0;
+  const costBefore = T.unitCostOf(unit);
+  T.buyUnit(unit, plot.id);
+  check("foundation costs grow per copy", T.unitCostOf(unit) > costBefore);
+
+  // Pylon bursts: charged taps pay out and reset; uncharged taps do nothing.
+  T.state.pylons.north = 0.4;
+  check("uncharged pylons cannot burst", T.activatePylon("north") === false);
+  T.state.pylons.north = 1;
+  const tokensBefore = T.state.tokens;
+  T.state.debt = 50;
+  check("charged pylon burst pays out and clears defects",
+    T.activatePylon("north") === true && T.state.tokens > tokensBefore && T.state.debt < 50 && T.state.pylons.north === 0);
+  const chargeBefore = T.state.pylons.north;
+  T.step(10, true);
+  check("pylons recharge over time", T.state.pylons.north > chargeBefore && T.state.pylons.north < 1);
+
+  // Command Center levels are a real output lever.
+  const baseProd = T.prodPerSec();
+  T.state.tokens = 1e9;
+  check("command center upgrade purchasable", T.buyCcLevel() === true && T.state.ccLevel === 1);
+  check("command center level boosts output", T.prodPerSec() > baseProd);
+
+  // Manual sprint: a ready burst ships several seconds of production.
+  T.setBurstCharge(1);
+  const clickGain = T.doWork();
+  check("ready sprint outships a bare click", clickGain > T.CFG.clickBase * T.mods().prodMult && T.burstCharge === 0);
+
+  // Pathfinding + terrain rules that back the god-hand mechanic.
+  const nodeIds = Object.keys(T.PATH_NODES);
+  const from = nodeIds.indexOf("cave_door");
+  const to = nodeIds.indexOf("south_gate");
+  const path = T.findPath(from, to);
+  check("A* routes across the whole campus", Array.isArray(path) && path[0] === from && path[path.length - 1] === to && path.length > 4);
+  check("walkway points are walkable terrain", T.isWalkablePoint(T.PATH_NODES.cc_entry));
+  check("open meadow is not walkable terrain", !T.isWalkablePoint({ x: 0.9, y: 0.4 }));
+  check("river crossings are detected", T.segmentCrossesWater({ x: 0.52, y: 0.30 }, { x: 0.66, y: 0.30 }) === true);
+}
+
+{
+  const T = boot();
   const quick = T.agentStats({ modelId: "ds-coder-13b", mode: "quick", x: 0.5, y: 0.5 });
   const standard = T.agentStats({ modelId: "ds-coder-13b", mode: "standard", x: 0.5, y: 0.5 });
   const deep = T.agentStats({ modelId: "ds-coder-13b", mode: "deep", x: 0.5, y: 0.5 });
@@ -247,6 +306,12 @@ check("scaled strategy adopts systems", Object.keys(scaled.T.state.owned).length
   T.setState({ agents: [{ uid: "a1", modelId: "opus", mode: "deep", x: 0.9, y: 0.1 }] });
   check("v2 fictional reviewer migrates to QwQ", T.countOf("qwq-32b") === 1);
   check("legacy instance coordinates are collision-snapped", Math.sqrt(T.projectToWalkway(T.state.agents[0]).d2) < 1e-6);
+
+  // v3 saves (no plots/pylons/ccLevel) hydrate to sane v4 defaults.
+  T.setState({ version: 3, tokens: 500, agents: [{ uid: "a1", modelId: "qwen25-05b", mode: "standard", x: 0.46, y: 0.6 }] });
+  const plotsOk = T.PLOTS.every(plot => T.plotState(plot.id) && T.plotState(plot.id).active === false);
+  const pylonsOk = T.PYLONS.every(pylon => T.state.pylons[pylon.id] >= 0 && T.state.pylons[pylon.id] <= 1);
+  check("v3 save migrates to v4 defaults", plotsOk && pylonsOk && T.state.ccLevel === 0 && T.state.tokens === 500 && T.countOf("qwen25-05b") === 1);
 }
 
 for (const [label, pass, detail] of checks) {

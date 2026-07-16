@@ -5,11 +5,25 @@
    -------------------------------------------------------------------------- */
 
 const TIERS = [
-  { id: 1, name: "Roots", subtitle: "Small weights and the API pioneers", unlockLifetime: 0 },
-  { id: 2, name: "Open Lab", subtitle: "Local runners become a real bench", unlockLifetime: 10000 },
-  { id: 3, name: "Production", subtitle: "Workhorse models for serious throughput", unlockLifetime: 250000 },
-  { id: 4, name: "Reasoning", subtitle: "Reviewers, planners, and agentic coordinators", unlockLifetime: 8000000 },
-  { id: 5, name: "Frontier", subtitle: "Hosted leads for the late-game org", unlockLifetime: 200000000 }
+  { id: 1, name: "Roots", subtitle: "Small weights and the API pioneers", unlockLifetime: 0, unlockLevel: 1 },
+  { id: 2, name: "Open Lab", subtitle: "Local runners become a real bench", unlockLifetime: 10000, unlockLevel: 3 },
+  { id: 3, name: "Production", subtitle: "Workhorse models for serious throughput", unlockLifetime: 250000, unlockLevel: 5 },
+  { id: 4, name: "Reasoning", subtitle: "Reviewers, planners, and agentic coordinators", unlockLifetime: 8000000, unlockLevel: 8 },
+  { id: 5, name: "Frontier", subtitle: "Hosted leads for the late-game org", unlockLifetime: 200000000, unlockLevel: 12 }
+];
+
+// Cumulative EXP thresholds for org levels 1..20 (index 0 unused).
+const LEVEL_EXP = [0, 0, 25, 70, 140, 240, 380, 560, 800, 1100, 1500, 2000, 2600, 3400, 4400, 5600, 7000, 8800, 11000, 14000, 18000];
+
+const GUIDE_STEPS = [
+  { id: "ship", text: "Ship tasks until you have 15 tokens (tap Ship a task)." },
+  { id: "open", text: "Select the glass Command Center building to open the market." },
+  { id: "deploy", text: "Deploy your first free model: Qwen 0.5B." },
+  { id: "reason", text: "Select your robot and try Quick / Standard / Deep reasoning." },
+  { id: "review", text: "When defects rise, use Review queue to clean the backlog." },
+  { id: "grow", text: "Earn EXP, level up, and unlock higher model tiers." },
+  { id: "pylon", text: "Stand near blue pylons for buffs; tap them when charged." },
+  { id: "relay", text: "Visit the Field Relay in the open meadow and broadcast." }
 ];
 
 // Model names, providers, eras, and availability labels mirror their official
@@ -22,23 +36,23 @@ const MODELS = [
 
   { id: "yi-6b-chat", name: "Yi-6B-Chat", shortName: "Yi 6B", provider: "01.AI", tier: 2, era: "2023", availability: "OPEN WEIGHTS · CUSTOM LICENSE", sprite: "sonnet", color: "#ff9a45", baseCost: 3200, growth: 1.16, rate: 65, burn: 28, defects: 0.009, clears: 0, role: "Bilingual writer", flavor: "A compact storyteller with a practical streak.", labels: ["Draft", "Shape", "Polish"], source: "https://github.com/01-ai/Yi" },
   { id: "qwen25-7b", name: "Qwen2.5-7B-Instruct", shortName: "Qwen 7B", provider: "Qwen", tier: 2, era: "2024", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "hy3", color: "#7b5bde", baseCost: 8500, growth: 1.16, rate: 170, burn: 76, defects: 0.006, clears: 0, role: "Balanced generalist", flavor: "The dependable local bench starts here.", labels: ["Answer", "Chain", "Inspect"], source: "https://qwenlm.github.io/blog/qwen2.5/" },
-  { id: "mistral-7b", name: "Mistral 7B Instruct", shortName: "Mistral 7B", provider: "Mistral AI", tier: 2, era: "2023", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "flash", color: "#ff9f43", baseCost: 22000, growth: 1.16, rate: 430, burn: 188, defects: 0.0045, clears: 0, role: "Low-burn runner", flavor: "Fast local work without hauling the whole lab.", labels: ["Sprint", "Route", "Reason"], source: "https://mistral.ai/news/announcing-mistral-7b/" },
+  { id: "mistral-7b", name: "Mistral 7B Instruct", shortName: "Mistral 7B", provider: "Mistral AI", tier: 2, era: "2023", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "volt", color: "#ffd23a", baseCost: 22000, growth: 1.16, rate: 430, burn: 188, defects: 0.0045, clears: 0, role: "Low-burn runner", flavor: "Fast local work without hauling the whole lab.", labels: ["Sprint", "Route", "Reason"], source: "https://mistral.ai/news/announcing-mistral-7b/" },
   { id: "glm4-9b", name: "GLM-4-9B-Chat", shortName: "GLM-4 9B", provider: "Zhipu AI", tier: 2, era: "2024", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "nano", color: "#22b8b0", baseCost: 60000, growth: 1.17, rate: 1100, burn: 490, defects: 0.003, clears: 0.02, role: "Long-context clerk", flavor: "Keeps the handoff legible in two languages.", labels: ["Execute", "Reflect", "Prove"], source: "https://github.com/zai-org/GLM-4" },
 
   { id: "gpt35-turbo", name: "GPT-3.5 Turbo", shortName: "GPT-3.5", provider: "OpenAI", tier: 3, era: "2023", availability: "HOSTED · ARCHIVE", sprite: "glm", color: "#20b486", baseCost: 160000, growth: 1.17, rate: 3000, burn: 1360, defects: 0.002, clears: 0, role: "API workhorse", flavor: "Function calls, batch jobs, and an alarming coffee habit.", labels: ["Call", "Compose", "Check"], source: "https://openai.com/index/function-calling-and-other-api-updates/" },
   { id: "llama31-8b", name: "Llama 3.1 8B Instruct", shortName: "Llama 3.1 8B", provider: "Meta", tier: 3, era: "2024", availability: "OPEN WEIGHTS · COMMUNITY LICENSE", sprite: "opus", color: "#168aff", baseCost: 450000, growth: 1.17, rate: 8000, burn: 3600, defects: 0.0012, clears: 0.04, role: "Private ops generalist", flavor: "Runs inside the walls and minds its own context.", labels: ["Draft", "Plan", "Audit"], source: "https://ai.meta.com/blog/meta-llama-3-1/" },
-  { id: "qwen25-coder-32b", name: "Qwen2.5-Coder-32B-Instruct", shortName: "Qwen Coder 32B", provider: "Qwen", tier: 3, era: "2024", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "sonnet", color: "#9c6cff", baseCost: 1200000, growth: 1.18, rate: 24000, burn: 10800, defects: 0.0007, clears: 0.08, role: "Senior code architect", flavor: "Reads the repository before touching the semicolon.", labels: ["Patch", "Analyze", "Simulate"], source: "https://qwenlm.github.io/blog/qwen2.5-coder-family/" },
+  { id: "qwen25-coder-32b", name: "Qwen2.5-Coder-32B-Instruct", shortName: "Qwen Coder 32B", provider: "Qwen", tier: 3, era: "2024", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "wrench", color: "#9c6cff", baseCost: 1200000, growth: 1.18, rate: 24000, burn: 10800, defects: 0.0007, clears: 0.08, role: "Senior code architect", flavor: "Reads the repository before touching the semicolon.", labels: ["Patch", "Analyze", "Simulate"], source: "https://qwenlm.github.io/blog/qwen2.5-coder-family/" },
   { id: "deepseek-v3", name: "DeepSeek-V3", shortName: "DeepSeek V3", provider: "DeepSeek", tier: 3, era: "2024", availability: "OPEN WEIGHTS · MODEL LICENSE", sprite: "architect", color: "#2859d9", baseCost: 3500000, growth: 1.18, rate: 70000, burn: 31500, defects: 0.0004, clears: 0.14, role: "Production conductor", flavor: "A mixture of experts pretending the queue is an orchestra.", labels: ["Route", "Coordinate", "Verify"], source: "https://github.com/deepseek-ai/DeepSeek-V3" },
 
   { id: "llama31-70b", name: "Llama 3.1 70B Instruct", shortName: "Llama 3.1 70B", provider: "Meta", tier: 4, era: "2024", availability: "OPEN WEIGHTS · COMMUNITY LICENSE", sprite: "opus", color: "#0d6fd8", baseCost: 10000000, growth: 1.18, rate: 190000, burn: 90000, defects: 0.00018, clears: 0.8, role: "Reviewer and mentor", flavor: "Big enough to remember why the policy exists.", labels: ["Guide", "Review", "Forensic"], source: "https://ai.meta.com/blog/meta-llama-3-1/" },
-  { id: "qwq-32b", name: "QwQ-32B", shortName: "QwQ 32B", provider: "Qwen", tier: 4, era: "2025", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "sonnet", color: "#b45cff", baseCost: 26000000, growth: 1.18, rate: 500000, burn: 245000, defects: 0.00006, clears: 3, role: "Math verifier", flavor: "Will think twice, then think about thinking twice.", labels: ["Solve", "Reason", "Prove"], source: "https://qwenlm.github.io/blog/qwq-32b/" },
-  { id: "deepseek-r1", name: "DeepSeek-R1", shortName: "DeepSeek R1", provider: "DeepSeek", tier: 4, era: "2025", availability: "OPEN WEIGHTS · MIT", sprite: "architect", color: "#1649c8", baseCost: 70000000, growth: 1.19, rate: 1400000, burn: 700000, defects: 0.00002, clears: 12, role: "Defect hunter", flavor: "Finds the hidden premise and files a bug against it.", labels: ["Trace", "Reason", "Forensic"], source: "https://github.com/deepseek-ai/DeepSeek-R1" },
-  { id: "kimi-k2", name: "Kimi-K2-Instruct", shortName: "Kimi K2", provider: "Moonshot AI", tier: 4, era: "2025", availability: "OPEN WEIGHTS · MODIFIED MIT", sprite: "nano", color: "#b8f36b", baseCost: 190000000, growth: 1.19, rate: 4000000, burn: 1950000, defects: 0.00003, clears: 4, role: "Agentic tool runner", flavor: "Carries the toolbox and somehow also the meeting notes.", labels: ["Act", "Coordinate", "Reflect"], source: "https://github.com/MoonshotAI/Kimi-K2" },
+  { id: "qwq-32b", name: "QwQ-32B", shortName: "QwQ 32B", provider: "Qwen", tier: 4, era: "2025", availability: "OPEN WEIGHTS · APACHE 2.0", sprite: "sage", color: "#b45cff", baseCost: 26000000, growth: 1.18, rate: 500000, burn: 245000, defects: 0.00006, clears: 3, role: "Math verifier", flavor: "Will think twice, then think about thinking twice.", labels: ["Solve", "Reason", "Prove"], source: "https://qwenlm.github.io/blog/qwq-32b/" },
+  { id: "deepseek-r1", name: "DeepSeek-R1", shortName: "DeepSeek R1", provider: "DeepSeek", tier: 4, era: "2025", availability: "OPEN WEIGHTS · MIT", sprite: "sage", color: "#1649c8", baseCost: 70000000, growth: 1.19, rate: 1400000, burn: 700000, defects: 0.00002, clears: 12, role: "Defect hunter", flavor: "Finds the hidden premise and files a bug against it.", labels: ["Trace", "Reason", "Forensic"], source: "https://github.com/deepseek-ai/DeepSeek-R1" },
+  { id: "kimi-k2", name: "Kimi-K2-Instruct", shortName: "Kimi K2", provider: "Moonshot AI", tier: 4, era: "2025", availability: "OPEN WEIGHTS · MODIFIED MIT", sprite: "wrench", color: "#b8f36b", baseCost: 190000000, growth: 1.19, rate: 4000000, burn: 1950000, defects: 0.00003, clears: 4, role: "Agentic tool runner", flavor: "Carries the toolbox and somehow also the meeting notes.", labels: ["Act", "Coordinate", "Reflect"], source: "https://github.com/MoonshotAI/Kimi-K2" },
 
-  { id: "openai-o3", name: "OpenAI o3", shortName: "o3", provider: "OpenAI", tier: 5, era: "2025", availability: "HOSTED · LEGACY FRONTIER", sprite: "opus", color: "#d8fff3", baseCost: 600000000, growth: 1.19, rate: 12000000, burn: 5900000, defects: 0, clears: 50, role: "Principal reasoner", flavor: "A principal scientist who reviews the review queue.", labels: ["Triage", "Reason", "Forensic"], source: "https://developers.openai.com/api/docs/models/o3" },
-  { id: "gemini35-flash", name: "Gemini 3.5 Flash", shortName: "Gemini 3.5", provider: "Google", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "flash", color: "#4285f4", baseCost: 1800000000, growth: 1.19, rate: 35000000, burn: 17000000, defects: 0.000006, clears: 14, role: "Multimodal responder", flavor: "Sees the screenshot before the bug report finishes loading.", labels: ["Flash", "Ground", "Inspect"], source: "https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash" },
-  { id: "gpt56-sol", name: "GPT-5.6 Sol", shortName: "GPT-5.6 Sol", provider: "OpenAI", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "hy3", color: "#e8fff8", baseCost: 5500000000, growth: 1.20, rate: 110000000, burn: 53000000, defects: 0.000002, clears: 70, role: "Executive orchestrator", flavor: "The all-rounder who turned the roadmap into a route.", labels: ["Direct", "Orchestrate", "Simulate"], source: "https://openai.com/index/gpt-5-6/" },
-  { id: "claude-opus-48", name: "Claude Opus 4.8", shortName: "Opus 4.8", provider: "Anthropic", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "architect", color: "#d97757", baseCost: 16000000000, growth: 1.20, rate: 340000000, burn: 162000000, defects: 0, clears: 220, role: "Long-horizon lead", flavor: "Builds for hours, then leaves unusually tidy notes.", labels: ["Build", "Lead", "Forensic"], source: "https://www.anthropic.com/news/claude-opus-4-8" }
+  { id: "openai-o3", name: "OpenAI o3", shortName: "o3", provider: "OpenAI", tier: 5, era: "2025", availability: "HOSTED · LEGACY FRONTIER", sprite: "prism", color: "#d8fff3", baseCost: 600000000, growth: 1.19, rate: 12000000, burn: 5900000, defects: 0, clears: 50, role: "Principal reasoner", flavor: "A principal scientist who reviews the review queue.", labels: ["Triage", "Reason", "Forensic"], source: "https://developers.openai.com/api/docs/models/o3" },
+  { id: "gemini35-flash", name: "Gemini 3.5 Flash", shortName: "Gemini 3.5", provider: "Google", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "volt", color: "#f4c430", baseCost: 1800000000, growth: 1.19, rate: 35000000, burn: 17000000, defects: 0.000006, clears: 14, role: "Multimodal responder", flavor: "Sees the screenshot before the bug report finishes loading.", labels: ["Flash", "Ground", "Inspect"], source: "https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash" },
+  { id: "gpt56-sol", name: "GPT-5.6 Sol", shortName: "GPT-5.6 Sol", provider: "OpenAI", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "prism", color: "#e8fff8", baseCost: 5500000000, growth: 1.20, rate: 110000000, burn: 53000000, defects: 0.000002, clears: 70, role: "Executive orchestrator", flavor: "The all-rounder who turned the roadmap into a route.", labels: ["Direct", "Orchestrate", "Simulate"], source: "https://openai.com/index/gpt-5-6/" },
+  { id: "claude-opus-48", name: "Claude Opus 4.8", shortName: "Opus 4.8", provider: "Anthropic", tier: 5, era: "2026", availability: "HOSTED · CURRENT", sprite: "ember", color: "#d97757", baseCost: 16000000000, growth: 1.20, rate: 340000000, burn: 162000000, defects: 0, clears: 220, role: "Long-horizon lead", flavor: "Builds for hours, then leaves unusually tidy notes.", labels: ["Build", "Lead", "Forensic"], source: "https://www.anthropic.com/news/claude-opus-4-8" }
 ];
 
 const LEGACY_MODEL_MAP = {
@@ -79,7 +93,9 @@ const PATH_NODES = {
   east_top_w:{x:.640,y:.335,event:"beacon"}, upper_bridge_e:{x:.600,y:.350}, upper_bridge_turn:{x:.600,y:.385}, upper_bridge_mid:{x:.582,y:.385,event:"bridge"}, upper_bridge_w:{x:.570,y:.385,event:"water"},
   south_lane:{x:.460,y:.735}, south_junction:{x:.460,y:.768}, south_e:{x:.510,y:.768}, south_bridge_n:{x:.510,y:.800},
   south_bridge_mid:{x:.510,y:.825,event:"bridge"}, south_gate:{x:.510,y:.875,event:"perimeter"}, south_beacon:{x:.425,y:.768,event:"beacon"},
-  cc_apron_e:{x:.510,y:.558,event:"command"}
+  cc_apron_e:{x:.510,y:.558,event:"command"},
+  // Spur into the open eastern meadow — the Field Relay lives here.
+  meadow_spur:{x:.820,y:.500}, meadow_relay:{x:.885,y:.495,event:"relay"}, meadow_wander:{x:.910,y:.560,event:"meadow"}
 };
 
 const PATH_EDGES = [
@@ -91,7 +107,8 @@ const PATH_EDGES = [
   ["lower_field_gate","archive_lane_s"],["archive_lane_s","archive_door"],["archive_door","archive_lane_mid"],["archive_lane_mid","archive_lane_e"],["archive_lane_e","east_turn"],["east_turn","east_lane_n"],["east_lane_n","east_top_e"],["east_top_e","east_top_mid"],["east_top_mid","east_top_w"],["east_top_w","upper_bridge_e"],["upper_bridge_e","upper_bridge_turn"],["upper_bridge_turn","upper_bridge_mid"],["upper_bridge_mid","upper_bridge_w"],
   ["east_top_mid","training_gate"],["training_gate","training_s"],["training_s","training_mid"],["training_mid","training_n"],
   ["fountain_s","south_lane"],["south_lane","south_junction"],["south_junction","south_e"],["south_e","south_bridge_n"],["south_bridge_n","south_bridge_mid"],["south_bridge_mid","south_gate"],["south_junction","south_beacon"],
-  ["cc_entry","cc_apron_e"]
+  ["cc_entry","cc_apron_e"],
+  ["east_turn","meadow_spur"],["meadow_spur","meadow_relay"],["meadow_relay","meadow_wander"]
 ];
 
 const PATH_NODE_IDS = Object.keys(PATH_NODES);
@@ -109,18 +126,63 @@ const SPAWN_ROUTES = [
 ];
 
 const ENVIRONMENT_LINES = {
-  command: ["Back from stand-up. Nothing stood up.", "HQ filed a ticket against the ticket."],
-  cave: ["The cave returned 403.", "I heard legacy code in there."],
-  solar: ["Panels at 98%. Confidence at 61%."],
-  beacon: ["Beacon synced. Vibes remain eventual."],
-  garden: ["I pruned one branch. Git is furious."],
-  fountain: ["Water-cooler meeting, now with actual water.", "I reviewed my reflection. Needs tests."],
-  archive: ["Archive found: FINAL_v7_REAL."],
-  training: ["Benchmark complete. I won the spreadsheet."],
-  sandbox: ["Sandbox passed. Sand remains untyped."],
-  bridge: ["Water under the bridge; bugs still upstream."],
-  water: ["Water under the bridge; bugs still upstream."],
-  perimeter: ["I touched grass. Cache invalidated."]
+  command: [
+    "Back from stand-up. Nothing stood up.", "HQ filed a ticket against the ticket.",
+    "The glass ceiling is load-bearing glass.", "I clocked in twice to be sure.",
+    "Command Center smells like fresh deploys."
+  ],
+  cave: [
+    "The cave returned 403.", "I heard legacy code in there.",
+    "Dark mode is free in here.", "A moth asked for code review."
+  ],
+  solar: [
+    "Panels at 98%. Confidence at 61%.", "Sunlight converted into tickets.",
+    "Photons shipping. Still no comments."
+  ],
+  beacon: [
+    "Beacon synced. Vibes remain eventual.", "I pinged the light. It ponged.",
+    "Resonance rising. Knees also rising.", "Blue means go, or at least try."
+  ],
+  garden: [
+    "I pruned one branch. Git is furious.", "Flowers merged clean.",
+    "Pollen in the changelog."
+  ],
+  fountain: [
+    "Water-cooler meeting, now with actual water.", "I reviewed my reflection. Needs tests.",
+    "Splash latency: excellent.", "The fountain ships hydration continuously."
+  ],
+  archive: [
+    "Archive found: FINAL_v7_REAL.", "Dusty docs, spicy truths.",
+    "I opened a folder named never_delete."
+  ],
+  training: [
+    "Benchmark complete. I won the spreadsheet.", "Accuracy up. Confidence louder.",
+    "I overfit the picnic table."
+  ],
+  sandbox: [
+    "Sandbox passed. Sand remains untyped.", "No prod in the sandbox. I checked twice.",
+    "Castles compiled successfully."
+  ],
+  bridge: [
+    "Water under the bridge; bugs still upstream.", "I crossed with zero regressions.",
+    "Boards creak in C major."
+  ],
+  water: [
+    "Water under the bridge; bugs still upstream.", "I almost named a variable river."
+  ],
+  perimeter: [
+    "I touched grass. Cache invalidated.", "Outside the walls the bugs are freer.",
+    "Perimeter walk complete. Org still circular."
+  ],
+  relay: [
+    "Broadcasting vibes on channel green.", "Antenna up. Ego optional.",
+    "I wave at the sky. It wave-functions back.", "Field Relay likes this playlist.",
+    "Signal strong. Opinions stronger."
+  ],
+  meadow: [
+    "Open field. Closed tickets.", "I found a bug. It was a beetle.",
+    "The meadow has no style guide and thrives.", "Wide context window out here."
+  ]
 };
 
 const UPGRADES = [
@@ -149,6 +211,42 @@ const SYNERGIES = [
     test: () => MODELS.filter(model => model.tier === 5 && countOf(model.id) > 0).length >= 3 }
 ];
 
+// Foundation-era models. True passive generators: no burn, no defect drift,
+// and their steady trickle ignores integrity. They live in habitat plots.
+const FOUNDRY = [
+  { id: "eliza", name: "ELIZA", era: "1966", role: "Pattern-matching listener", rate: 0.2, baseCost: 60, growth: 1.22, color: "#8fd7c3", sprite: "relic", flavor: "Tell me more about your backlog." },
+  { id: "word2vec", name: "Word2Vec", era: "2013", role: "Meaning cartographer", rate: 1.4, baseCost: 480, growth: 1.22, color: "#b9e37d", sprite: "relic", flavor: "King − man + woman = shipped." },
+  { id: "lstm-chat", name: "LSTM Chatbot", era: "2015", role: "Sequence rememberer", rate: 6, baseCost: 2800, growth: 1.24, color: "#7fb7f2", sprite: "wrench", flavor: "Forgets slowly, on purpose." },
+  { id: "bert-base", name: "BERT Base", era: "2018", role: "Bidirectional reader", rate: 24, baseCost: 14000, growth: 1.24, color: "#f2c46f", sprite: "sage", flavor: "Reads the sentence both ways before deciding." },
+  { id: "gpt2-small", name: "GPT-2 Small", era: "2019", role: "Tireless drafter", rate: 90, baseCost: 64000, growth: 1.26, color: "#e79d84", sprite: "ember", flavor: "Will complete any thought. Any thought." },
+  { id: "t5-small", name: "T5-Small", era: "2019", role: "Everything-is-text clerk", rate: 320, baseCost: 300000, growth: 1.26, color: "#c9a1ef", sprite: "prism", flavor: "Translates chores into more chores, efficiently." }
+];
+
+// The four beige campus plots become purposeful deployment zones.
+const PLOTS = [
+  { id: "grove", name: "North Grove", cost: 200, capacity: 6, rect: { x0: 0.132, y0: 0.160, x1: 0.252, y1: 0.306 } },
+  { id: "ridge", name: "East Ridge", cost: 6000, capacity: 6, rect: { x0: 0.670, y0: 0.118, x1: 0.782, y1: 0.256 } },
+  { id: "court", name: "West Court", cost: 140000, capacity: 6, rect: { x0: 0.120, y0: 0.532, x1: 0.233, y1: 0.746 } },
+  { id: "meadow", name: "East Meadow", cost: 3000000, capacity: 6, rect: { x0: 0.618, y0: 0.530, x1: 0.737, y1: 0.736 } }
+];
+
+// The blue beacons become resonance pylons: an aura that buffs nearby model
+// teams, plus a slow charge the player can tap for a burst.
+const PYLONS = [
+  { id: "north", x: 585 / 1672, y: 232 / 941 },
+  { id: "ridge", x: 1075 / 1672, y: 256 / 941 },
+  { id: "solar", x: 220 / 1672, y: 441 / 941 },
+  { id: "fountain", x: 769 / 1672, y: 592 / 941, central: true },
+  { id: "grove", x: 679 / 1672, y: 746 / 941 },
+  { id: "east", x: 1278 / 1672, y: 697 / 941 }
+];
+
+const CC_LEVELS = [
+  { cost: 2500, blurb: "Route tasks through a live ops desk" },
+  { cost: 400000, blurb: "Stand up an evaluation mezzanine" },
+  { cost: 60000000, blurb: "Commission the orchestration atrium" }
+];
+
 const CFG = {
   tickMs: 100,
   saveEveryMs: 10000,
@@ -158,16 +256,73 @@ const CFG = {
   clickBase: 1,
   reviewBase: 1,
   debtDecay: 0.05,
-  logMax: 5,
-  saveKey: "agentOrgIdle.v3",
-  legacySaveKeys: ["agentOrgIdle.v2", "agentOrgIdle.v1"],
+  logMax: 7,
+  burstCooldownS: 4,
+  burstSeconds: 3,
+  auraRadiusPx: 150,
+  auraCentralPx: 130,
+  commandRadiusPx: 175,
+  pylonChargeS: 130,
+  pylonCentralChargeS: 95,
+  pylonBurstS: 20,
+  walkableRadiusPx: 30,
+  ccOutputPerLevel: 0.08,
+  ccChargePerLevel: 0.25,
+  // Field Relay lives in the open meadow: passive charge, faster with visitors,
+  // then a tap-to-broadcast org buff (runtime timer) plus a token splash.
+  relay: { x: 0.885, y: 0.495 },
+  relayRadiusPx: 120,
+  relayChargeS: 55,
+  relayNearMult: 3.4,
+  relayBurstS: 14,
+  relayBuffDurationS: 28,
+  relayBuffProd: 1.22,
+  relayBuffSprint: 1.45,
+  saveKey: "agentOrgIdle.v4",
+  legacySaveKeys: ["agentOrgIdle.v3", "agentOrgIdle.v2", "agentOrgIdle.v1"],
   uiKey: "agentOrgIdle.ui.v1"
 };
 
 const CHATTER = [
-  "stage passed clean.", "day-lock written.", "queue triaged: 0 open.",
-  "branch synced.", "rc=0 in 12s.", "inbox empty; skipping.",
-  "backoff 300s, attempt 2/4.", "markers purged."
+  "Stage passed clean.", "Queue triaged — zero open.",
+  "Branch synced across the org.", "Handoff notes filed early.",
+  "Inbox empty. Suspiciously empty.", "Nightly checks came back green.",
+  "Retro scheduled; snacks approved.", "Docs updated before anyone asked.",
+  "I left a sticky note on the sticky note.", "Morale unit tests: all green.",
+  "Shipping is a love language.", "I alphabetized the blockers.",
+  "Standup complete. Nobody stood.", "The backlog winked first.",
+  "I brought snacks for the queue.", "Context window open for business."
+];
+
+const ORG_THOUGHTS = [
+  "The org wonders if the fountain counts as pair programming.",
+  "Somewhere, a TODO quietly becomes a DONE.",
+  "Consensus reached: the river is out of scope.",
+  "The roadmap now has weather.",
+  "A pylon hums in E flat. Morale improves.",
+  "Two agents agreed on tabs vs spaces. Historic.",
+  "The campus smells like fresh deploys.",
+  "Someone taught ELIZA about standups. She asked how they feel.",
+  "Leaf-fall reclassified as ambient test coverage.",
+  "The org dreams in green checkmarks.",
+  "The Field Relay is gossiping with satellites.",
+  "A butterfly reviewed a PR and approved with wings.",
+  "Somewhere an agent is dancing for no reason. Perfect.",
+  "The meadow is running a soft launch.",
+  "Tonight's on-call: the moon, apparently."
+];
+
+const DANCE_LINES = [
+  "Victory dance. Scope creep later.",
+  "I contain multitudes and also rhythm.",
+  "Shipping so hard I invented a beat.",
+  "This is my compile celebration.",
+  "Feet free. Context locked.",
+  "Morale.exe is dancing.",
+  "I am groove-complete.",
+  "CI green. Knees greener.",
+  "Please hold while I boogie.",
+  "The queue can wait one chorus."
 ];
 
 const LIES = [
@@ -219,6 +374,36 @@ const MODEL_CHATTER = {
     "I moved the bottleneck to Q4.", "That edge case has zoning issues.",
     "I modeled the model modeling.", "Blueprint first. Panic later.",
     "Dependencies are shy dominoes.", "The plan is perfect. Reality pending."
+  ],
+  volt: [
+    "Latency is a lifestyle.", "I outran the stack trace.",
+    "Zap first, ask later.", "Sprint complete. Still sprinting.",
+    "I left smoke and a green check.", "Faster than the toast notification."
+  ],
+  ember: [
+    "Long horizon. Warm hands.", "I wrote notes for future me.",
+    "Cloak on. Chaos off.", "I build like the night is infinite.",
+    "Patience is my throughput.", "The scroll is longer than the task."
+  ],
+  prism: [
+    "I reflected on the reflection.", "Halos are just fancy ring buffers.",
+    "Oracle mode: gently smug.", "I saw the bug three prompts ago.",
+    "Clarity is my default theme.", "The future looks linted."
+  ],
+  sage: [
+    "I thought about thinking about it.", "Proof first. Pride second.",
+    "The stars agree with my unit tests.", "Mystery solved: missing semicolon.",
+    "I cast debug at fifth level.", "Wisdom is just cached experience."
+  ],
+  wrench: [
+    "I brought tools and opinions.", "Fixed. Also slightly upgraded.",
+    "If it moves, I can torque it.", "Backpack full of maybe-solutions.",
+    "I tightened the vague requirements.", "Wrench turns. World turns."
+  ],
+  relic: [
+    "I remember punch cards fondly.", "Hello world still works.",
+    "My CRT face never blinks first.", "Vintage is a feature flag.",
+    "Tell me more about your backlog.", "I predate your framework."
   ]
 };
 
@@ -234,7 +419,17 @@ const AGENT_EXCHANGES = [
   ["Are we in deep reasoning?", "Emotionally, yes."],
   ["What is our runway?", "Enough for one bad idea."],
   ["Why are you glowing?", "Uncommitted changes."],
-  ["Ship it?", "Let it finish becoming true."]
+  ["Ship it?", "Let it finish becoming true."],
+  ["Why are you dancing?", "Morale is a deployment target."],
+  ["Seen the Field Relay?", "It is gossiping with satellites."],
+  ["Need a pair?", "Only if you can keep up."],
+  ["Is the meadow in scope?", "Everything green is in scope."],
+  ["Bug or feature?", "It waves either way."],
+  ["Coffee?", "I run on pure tokens."],
+  ["Status?", "Alive, animated, slightly dramatic."],
+  ["Ready for broadcast?", "I brought jazz hands."],
+  ["How deep is deep?", "Deep enough to need snacks."],
+  ["Did you touch grass?", "I opened a ticket about it."]
 ];
 
 /* --------------------------------------------------------------------------
@@ -244,11 +439,16 @@ const AGENT_EXCHANGES = [
 function freshState() {
   const buyModes = {};
   MODELS.forEach(model => { buyModes[model.id] = "standard"; });
+  const plots = {};
+  PLOTS.forEach(plot => { plots[plot.id] = { active: false, units: {} }; });
+  const pylons = {};
+  PYLONS.forEach((pylon, index) => { pylons[pylon.id] = 0.25 + index * 0.09; });
   return {
-    version: 3,
+    version: 5,
     tokens: 0,
     debt: 0,
     lifetime: 0,
+    exp: 0,
     agents: [],
     owned: {},
     brownout: false,
@@ -256,12 +456,21 @@ function freshState() {
     nextAgentId: 1,
     buyModes,
     defectEvents: 0,
+    plots,
+    pylons,
+    relayCharge: 0.15,
+    ccLevel: 0,
+    guideStep: 0,
     last: Date.now()
   };
 }
 
 let state = freshState();
 let saveAcc = 0;
+// Sprint burst readiness (0..1). Runtime-only: active play, never persisted.
+let burstCharge = 1;
+// Temporary Field Relay broadcast buff (seconds remaining). Runtime-only.
+let relayBuffLeft = 0;
 
 const modelById = id => MODELS.find(model => model.id === id);
 const has = id => !!state.owned[id];
@@ -278,8 +487,125 @@ const costOf = model => Math.floor(model.baseCost * Math.pow(model.growth, count
 const upCostOf = upgrade => upgrade.cost;
 const integrity = () => 1 / (1 + state.debt / CFG.debtHalfPoint);
 const tierById = id => TIERS.find(tier => tier.id === id);
-const modelUnlocked = model => state.lifetime >= tierById(model.tier).unlockLifetime || countOf(model.id) > 0;
+
+function orgLevelInfo(exp) {
+  const total = Math.max(0, Number.isFinite(exp) ? exp : (state.exp || 0));
+  let level = 1;
+  while (level < LEVEL_EXP.length - 1 && total >= LEVEL_EXP[level + 1]) level += 1;
+  const floor = LEVEL_EXP[level] || 0;
+  const next = LEVEL_EXP[level + 1] || (floor + 4000);
+  const span = Math.max(1, next - floor);
+  const into = Math.max(0, total - floor);
+  return { level, exp: total, into, need: span, next, progress: clamp(into / span, 0, 1) };
+}
+
+const orgLevel = () => orgLevelInfo().level;
+
+function tierUnlocked(tier) {
+  if (!tier) return false;
+  return state.lifetime >= tier.unlockLifetime || orgLevel() >= (tier.unlockLevel || 1);
+}
+
+const modelUnlocked = model => countOf(model.id) > 0 || tierUnlocked(tierById(model.tier));
 const activeSynergies = () => SYNERGIES.filter(synergy => synergy.test());
+
+function gainExp(amount, reason) {
+  const add = Math.max(0, Math.floor(amount));
+  if (!add) return;
+  const before = orgLevel();
+  state.exp = (state.exp || 0) + add;
+  const after = orgLevel();
+  if (after > before && uiReady) {
+    log("org leveled up · level " + after + "!", "s");
+    announce("Level " + after + "! Higher model tiers may be unlocked.");
+    pulseTokenHud();
+  } else if (uiReady && reason && add >= 4 && Math.random() < 0.18) {
+    // quiet — avoid spam
+  }
+  updateGuide();
+}
+
+function currentGuideIndex() {
+  if (state.lifetime < 15 && state.tokens < 15 && state.agents.length === 0) return 0;
+  if (state.agents.length === 0) return 1; // open market / deploy
+  if (state.agents.length > 0 && (state.exp || 0) < 18) return 3; // try reasoning
+  if (state.debt > 1.2 && orgLevel() < 4) return 4;
+  if (orgLevel() < 3) return 5;
+  if (orgLevel() < 6) return 6;
+  return 7;
+}
+
+function updateGuide() {
+  if (!uiReady) return;
+  const guide = $("guide-text");
+  const stepEl = $("guide-step");
+  const card = $("guide-card");
+  const idx = currentGuideIndex();
+  state.guideStep = Math.max(state.guideStep || 0, idx);
+  const g = GUIDE_STEPS[Math.min(idx, GUIDE_STEPS.length - 1)];
+  if (guide) guide.textContent = g.text;
+  if (stepEl) stepEl.textContent = (idx + 1) + "/" + GUIDE_STEPS.length;
+  if (card) card.hidden = false;
+}
+
+/* ---- Placement, habitats, and pylons ------------------------------------ */
+
+const worldDistPx = (a, b) => Math.hypot((a.x - b.x) * WORLD.width, (a.y - b.y) * WORLD.height);
+const unitById = id => FOUNDRY.find(unit => unit.id === id);
+const plotById = id => PLOTS.find(plot => plot.id === id);
+const plotState = id => state.plots[id] || { active: false, units: {} };
+const plotPopulation = id => Object.values(plotState(id).units).reduce((sum, count) => sum + count, 0);
+const unitCount = unitId => PLOTS.reduce((sum, plot) => sum + (plotState(plot.id).units[unitId] || 0), 0);
+const unitCostOf = unit => Math.floor(unit.baseCost * Math.pow(unit.growth, unitCount(unit.id)));
+const activePlots = () => PLOTS.filter(plot => plotState(plot.id).active);
+
+// Which model families are standing inside a resonance aura right now. The
+// single field representative carries the whole family's placement.
+function attunedModelIds() {
+  const attuned = new Set();
+  for (const agent of representativeAgents()) {
+    for (const pylon of PYLONS) {
+      const radius = pylon.central ? CFG.auraCentralPx : CFG.auraRadiusPx;
+      if (worldDistPx(agent, pylon) <= radius) { attuned.add(agent.modelId); break; }
+    }
+  }
+  return attuned;
+}
+
+function familiesNearCommand() {
+  const entry = PATH_NODES.cc_entry;
+  return representativeAgents().filter(agent => worldDistPx(agent, entry) <= CFG.commandRadiusPx).length;
+}
+
+// How well the org is arranged. Scales the manual sprint burst.
+function focusFactor() {
+  const base = clamp(1 + 0.06 * attunedModelIds().size + 0.10 * familiesNearCommand(), 1, 1.6);
+  return base * (relayBuffLeft > 0 ? CFG.relayBuffSprint : 1);
+}
+
+function agentsNearRelay() {
+  const point = CFG.relay;
+  return representativeAgents().filter(agent => worldDistPx(agent, point) <= CFG.relayRadiusPx);
+}
+
+// Habitat foundation units: a steady floor of income. Organization output
+// upgrades apply, but integrity and brownouts never touch them.
+function foundationPerSec(m) {
+  m = m || mods();
+  let raw = 0;
+  for (const plot of activePlots()) {
+    for (const [unitId, count] of Object.entries(plotState(plot.id).units)) {
+      const unit = unitById(unitId);
+      if (unit) raw += unit.rate * count;
+    }
+  }
+  return raw * m.prodMult;
+}
+
+function pylonChargeDuration(pylon) {
+  const base = pylon.central ? CFG.pylonCentralChargeS : CFG.pylonChargeS;
+  return base / (1 + CFG.ccChargePerLevel * state.ccLevel);
+}
 
 function mods() {
   const out = { defectMult: 1, burnMult: 1, prodMult: 1, reviewPower: CFG.reviewBase };
@@ -295,6 +621,8 @@ function mods() {
     else out[effect.type] *= effect.value;
   }
   out.prodMult *= 1 + 0.02 * state.conventions;
+  out.prodMult *= 1 + CFG.ccOutputPerLevel * state.ccLevel;
+  if (relayBuffLeft > 0) out.prodMult *= CFG.relayBuffProd;
   return out;
 }
 
@@ -311,12 +639,14 @@ function agentStats(agent) {
 
 function contributions(includeBrownedOut) {
   const total = { rate: 0, burn: 0, defects: 0, clears: 0 };
+  const attuned = attunedModelIds();
   for (const agent of state.agents) {
     const stats = agentStats(agent);
     if (!includeBrownedOut && state.brownout && stats.burn > 0) continue;
-    total.rate += stats.rate;
+    const resonant = attuned.has(agent.modelId);
+    total.rate += stats.rate * (resonant ? 1.15 : 1);
     total.burn += stats.burn;
-    total.defects += stats.defects;
+    total.defects += stats.defects * (resonant ? 0.8 : 1);
     total.clears += stats.clears;
   }
   return total;
@@ -372,11 +702,25 @@ function step(dt, quiet) {
     const burn = burnPerSec(m);
     const defects = defectsPerSec(m);
     const clears = clearsPerSec();
-    const gain = output * slice;
+    const foundation = foundationPerSec(m);
+    const gain = (output + foundation) * slice;
 
     state.tokens = Math.max(0, state.tokens + gain - burn * slice);
     state.lifetime += gain;
     integrateDebt(slice, defects, clears);
+
+    for (const pylon of PYLONS) {
+      const charge = state.pylons[pylon.id] || 0;
+      if (charge < 1) state.pylons[pylon.id] = Math.min(1, charge + slice / pylonChargeDuration(pylon));
+    }
+
+    // Field Relay: slow base charge, much faster when agents hang out nearby.
+    if ((state.relayCharge || 0) < 1) {
+      const near = agentsNearRelay().length;
+      const rate = (1 / CFG.relayChargeS) * (near > 0 ? CFG.relayNearMult * Math.min(2.5, 1 + near * 0.35) : 1);
+      state.relayCharge = Math.min(1, (state.relayCharge || 0) + slice * rate);
+    }
+    if (relayBuffLeft > 0) relayBuffLeft = Math.max(0, relayBuffLeft - slice);
 
     state.defectEvents += defects * slice;
     if (state.defectEvents >= 1) {
@@ -400,7 +744,9 @@ function step(dt, quiet) {
       }
     }
 
-    if (!quiet && Math.random() < slice * 0.12) log(pick(CHATTER));
+    if (!quiet && Math.random() < slice * 0.04) log(pick(CHATTER));
+    if (!quiet && Math.random() < slice * 0.015) log(pick(ORG_THOUGHTS), "t");
+    if (!quiet && Math.random() < slice * 0.03) logIncomeDigest(slice);
     remaining -= slice;
   }
 }
@@ -435,6 +781,7 @@ function buy(model) {
   state.agents.push(agent);
   const representative = state.agents.find(item => item.modelId === model.id) || agent;
   selectedAgentId = representative.uid;
+  gainExp(6 + model.tier * 2, "deploy");
   log("deployed " + model.name + " in " + displayMode(model, mode) + " mode.", "g");
   announce(model.name + " deployed. The field robot now represents ×" + countOf(model.id) + ".");
   if (uiReady) {
@@ -458,22 +805,171 @@ function buyUp(upgrade) {
 }
 
 function doWork() {
-  const gain = CFG.clickBase * mods().prodMult;
+  const m = mods();
+  let gain = CFG.clickBase * m.prodMult;
+  let sprint = 0;
+  if (burstCharge >= 1) {
+    const focus = focusFactor();
+    sprint = prodPerSec(m) * CFG.burstSeconds * focus;
+    if (sprint > 0.5) {
+      burstCharge = 0;
+      gain += sprint;
+      log("sprint shipped · +" + fmt(sprint) + " tokens (focus ×" + focus.toFixed(2) + ")", "g");
+    } else {
+      sprint = 0;
+    }
+  }
   state.tokens += gain;
   state.lifetime += gain;
+  gainExp(1 + (sprint > 0 ? 3 : 0) + Math.floor(gain / 25), "ship");
   if (uiReady) {
     const work = $("work");
     work.classList.remove("is-pulsing");
     requestAnimationFrame(() => work.classList.add("is-pulsing"));
+    spawnGainFx(gain, sprint > 0);
+    spawnClickSparks(sprint > 0);
+    pulseTokenHud();
+    if (sprint > 0) {
+      pulseWorkforce();
+      $("game").classList.remove("is-screen-kick");
+      requestAnimationFrame(() => $("game").classList.add("is-screen-kick"));
+      setTimeout(() => $("game").classList.remove("is-screen-kick"), 220);
+    }
     render();
   }
+  return gain;
+}
+
+function reviewClearAmount(m) {
+  return (m || mods()).reviewPower + state.debt * 0.08;
 }
 
 function doReview() {
   if (state.debt <= 0) return;
-  state.debt = Math.max(0, state.debt - mods().reviewPower);
-  if (state.debt === 0) log("queue clear: 0 open.", "g");
+  state.debt = Math.max(0, state.debt - reviewClearAmount());
+  gainExp(2, "review");
+  if (state.debt < 0.05) {
+    state.debt = 0;
+    log("queue clear — zero open defects.", "g");
+    gainExp(3, "review-clear");
+  }
   if (uiReady) render();
+}
+
+function buyPlot(plot) {
+  const record = plotState(plot.id);
+  if (record.active || state.tokens < plot.cost) return false;
+  state.tokens -= plot.cost;
+  state.plots[plot.id] = { active: true, units: {} };
+  log(plot.name + " habitat activated.", "s");
+  announce(plot.name + " is open. Deploy foundation models from the Habitats tab.");
+  if (uiReady) { buildPlots(); buildHabitats(); renderMinions(); render(); save(false); }
+  return true;
+}
+
+function buyUnit(unit, plotId) {
+  const plot = plotById(plotId);
+  const record = plotState(plotId);
+  if (!plot || !record.active || plotPopulation(plotId) >= plot.capacity) return false;
+  const cost = unitCostOf(unit);
+  if (state.tokens < cost) return false;
+  state.tokens -= cost;
+  record.units[unit.id] = (record.units[unit.id] || 0) + 1;
+  log(unit.name + " settled into " + plot.name + " · +" + fmt(unit.rate) + "/s steady.", "g");
+  announce(unit.name + " deployed to " + plot.name + ".");
+  if (uiReady) { buildHabitats(); renderMinions(); render(); save(false); }
+  return true;
+}
+
+function activatePylon(id) {
+  const pylon = PYLONS.find(item => item.id === id);
+  if (!pylon) return false;
+  if ((state.pylons[id] || 0) < 1) return false;
+  const m = mods();
+  const gain = Math.max(20, (prodPerSec(m) + foundationPerSec(m)) * CFG.pylonBurstS);
+  state.tokens += gain;
+  state.lifetime += gain;
+  const cleared = state.debt * 0.12 + 1;
+  state.debt = Math.max(0, state.debt - cleared);
+  state.pylons[id] = 0;
+  gainExp(5, "pylon");
+  log("resonance burst · +" + fmt(gain) + " tokens, −" + fmt(cleared) + " defects.", "s");
+  if (uiReady) { announce("Resonance burst. +" + fmt(gain) + " tokens."); render(); save(false); }
+  return true;
+}
+
+function activateRelay() {
+  if ((state.relayCharge || 0) < 1) return false;
+  const m = mods();
+  const gain = Math.max(12, (prodPerSec(m) + foundationPerSec(m)) * CFG.relayBurstS);
+  state.tokens += gain;
+  state.lifetime += gain;
+  state.relayCharge = 0;
+  relayBuffLeft = CFG.relayBuffDurationS;
+  gainExp(8, "relay");
+  // Nearby agents celebrate the broadcast.
+  agentsNearRelay().forEach(agent => {
+    startAgentDance(agent.uid, 3200 + Math.random() * 1200);
+    if (Math.random() < 0.4) showSpeech(agent.uid, pick(DANCE_LINES), 2800);
+  });
+  log("field broadcast · +" + fmt(gain) + " tokens · org +22% for " + CFG.relayBuffDurationS + "s.", "s");
+  if (uiReady) {
+    announce("Field Relay broadcast! +" + fmt(gain) + " tokens and a temporary production surge.");
+    relayBurstFx();
+    render();
+    save(false);
+  }
+  return true;
+}
+
+function relayBurstFx() {
+  const fx = $("fx");
+  if (!fx) return;
+  const ring = document.createElement("i");
+  ring.className = "relay-burst-ring";
+  ring.style.left = CFG.relay.x * 100 + "%";
+  ring.style.top = CFG.relay.y * 100 + "%";
+  fx.appendChild(ring);
+  setTimeout(() => ring.remove(), 1400);
+  for (let i = 0; i < 10; i++) {
+    const mote = document.createElement("i");
+    mote.className = "relay-mote";
+    const angle = (Math.PI * 2 * i) / 10;
+    mote.style.left = CFG.relay.x * 100 + "%";
+    mote.style.top = CFG.relay.y * 100 + "%";
+    mote.style.setProperty("--dx", Math.cos(angle) * (28 + Math.random() * 36) + "px");
+    mote.style.setProperty("--dy", Math.sin(angle) * (18 + Math.random() * 28) - 20 + "px");
+    fx.appendChild(mote);
+    setTimeout(() => mote.remove(), 900);
+  }
+}
+
+function updateRelay() {
+  const el = $("field-relay");
+  const status = $("relay-status");
+  if (!el) return;
+  const charge = state.relayCharge || 0;
+  el.style.setProperty("--charge", Math.round(charge * 100) + "%");
+  el.classList.toggle("is-charged", charge >= 1);
+  el.classList.toggle("is-buffing", relayBuffLeft > 0);
+  el.classList.toggle("is-visited", agentsNearRelay().length > 0);
+  if (status) {
+    if (relayBuffLeft > 0) status.textContent = "LIVE +" + Math.ceil(relayBuffLeft) + "s";
+    else if (charge >= 1) status.textContent = "tap to broadcast";
+    else if (agentsNearRelay().length) status.textContent = "charging " + Math.round(charge * 100) + "% · visitors";
+    else status.textContent = "charging " + Math.round(charge * 100) + "%";
+  }
+}
+
+function buyCcLevel() {
+  const next = CC_LEVELS[state.ccLevel];
+  if (!next || state.tokens < next.cost) return false;
+  state.tokens -= next.cost;
+  state.ccLevel += 1;
+  log("Command Center upgraded to level " + state.ccLevel + " — " + next.blurb.toLowerCase() + ".", "s");
+  announce("Command Center level " + state.ccLevel + ". Output up, pylons charge faster.");
+  if (uiReady) { buildUpgrades(); render(); save(false); }
+  return true;
 }
 
 /* --------------------------------------------------------------------------
@@ -482,6 +978,118 @@ function doReview() {
 
 const finiteNonnegative = (value, fallback) => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : fallback;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+// Coarse water mask: capsule chains traced over the painted river courses.
+// Used only to keep return walks from wading straight through water.
+const WATER_CHAINS = [
+  { radius: 34, points: [[570, 104], [650, 151], [726, 180], [806, 202], [880, 236], [951, 278], [982, 350], [989, 438], [978, 520], [974, 587], [948, 680], [922, 775], [868, 830], [808, 866], [745, 890]] },
+  { radius: 28, points: [[600, 330], [555, 430], [560, 503], [540, 570], [527, 640], [515, 730], [510, 806], [545, 845]] },
+  { radius: 28, points: [[527, 640], [560, 720], [612, 780], [700, 830], [808, 866]] },
+  { radius: 30, points: [[40, 390], [105, 450], [105, 527], [80, 667], [91, 727], [120, 790], [180, 850], [280, 885]] }
+];
+
+function pointToSegmentDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const t = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+  return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+}
+
+function pointInWater(x, y) {
+  for (const chain of WATER_CHAINS) {
+    for (let i = 0; i < chain.points.length - 1; i++) {
+      const [ax, ay] = chain.points[i];
+      const [bx, by] = chain.points[i + 1];
+      if (pointToSegmentDist(x, y, ax, ay, bx, by) < chain.radius) return true;
+    }
+  }
+  return false;
+}
+
+// Sample a straight walk (normalized coords) against the water mask.
+function segmentCrossesWater(from, to) {
+  const ax = from.x * WORLD.width;
+  const ay = from.y * WORLD.height;
+  const bx = to.x * WORLD.width;
+  const by = to.y * WORLD.height;
+  const steps = Math.max(2, Math.ceil(Math.hypot(bx - ax, by - ay) / 14));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    if (pointInWater(ax + (bx - ax) * t, ay + (by - ay) * t)) return true;
+  }
+  return false;
+}
+
+// A point counts as walkable terrain when it sits on or beside the stone
+// walkway network (paths, bridges, plaza, Command Center aprons).
+function isWalkablePoint(point) {
+  const snap = projectToWalkway(point);
+  return !!snap && Math.sqrt(snap.d2) <= CFG.walkableRadiusPx;
+}
+
+// All edge projections for a point, nearest first. Lets the return walk pick
+// the closest walkway reachable without crossing water.
+function walkwayCandidates(point) {
+  const candidates = [];
+  PATH_EDGES.forEach(([aId, bId]) => {
+    const a = PATH_NODES[aId];
+    const b = PATH_NODES[bId];
+    const ax = a.x * WORLD.width;
+    const ay = a.y * WORLD.height;
+    const bx = b.x * WORLD.width;
+    const by = b.y * WORLD.height;
+    const px = point.x * WORLD.width;
+    const py = point.y * WORLD.height;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const t = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+    const x = ax + dx * t;
+    const y = ay + dy * t;
+    candidates.push({ x: x / WORLD.width, y: y / WORLD.height, aId, bId, t, d2: (px - x) ** 2 + (py - y) ** 2 });
+  });
+  return candidates.sort((a, b) => a.d2 - b.d2);
+}
+
+// A* over the campus node graph. Small graph, exact Euclidean heuristic.
+function findPath(fromIndex, toIndex) {
+  if (fromIndex === toIndex) return [fromIndex];
+  const nodePx = index => ({ x: CAMPUS_PATHS[index].x * WORLD.width, y: CAMPUS_PATHS[index].y * WORLD.height });
+  const heuristic = index => {
+    const a = nodePx(index);
+    const b = nodePx(toIndex);
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  const open = new Set([fromIndex]);
+  const cameFrom = new Map();
+  const gScore = new Map([[fromIndex, 0]]);
+  const fScore = new Map([[fromIndex, heuristic(fromIndex)]]);
+  while (open.size) {
+    let current = null;
+    let best = Infinity;
+    for (const index of open) {
+      const score = fScore.get(index) ?? Infinity;
+      if (score < best) { best = score; current = index; }
+    }
+    if (current === toIndex) {
+      const path = [current];
+      while (cameFrom.has(current)) { current = cameFrom.get(current); path.unshift(current); }
+      return path;
+    }
+    open.delete(current);
+    const currentPx = nodePx(current);
+    for (const neighbor of CAMPUS_PATHS[current].links) {
+      const neighborPx = nodePx(neighbor);
+      const tentative = (gScore.get(current) ?? Infinity) + Math.hypot(currentPx.x - neighborPx.x, currentPx.y - neighborPx.y);
+      if (tentative < (gScore.get(neighbor) ?? Infinity)) {
+        cameFrom.set(neighbor, current);
+        gScore.set(neighbor, tentative);
+        fScore.set(neighbor, tentative + heuristic(neighbor));
+        open.add(neighbor);
+      }
+    }
+  }
+  return null;
+}
 
 function projectToWalkway(point) {
   let best = null;
@@ -550,10 +1158,15 @@ function hydrate(raw) {
   next.tokens = finiteNonnegative(raw.tokens, 0);
   next.debt = finiteNonnegative(raw.debt, 0);
   next.lifetime = finiteNonnegative(raw.lifetime, 0);
+  // Seed EXP from lifetime for older saves so players don't restart the ladder cold.
+  const seededExp = Math.floor(Math.sqrt(Math.max(0, next.lifetime)) * 0.35);
+  next.exp = Math.max(seededExp, Math.floor(finiteNonnegative(raw.exp, 0)));
+  next.guideStep = Math.floor(finiteNonnegative(raw.guideStep, 0));
   next.brownout = !!raw.brownout;
   next.conventions = Math.floor(finiteNonnegative(raw.conventions, 0));
   next.defectEvents = clamp(finiteNonnegative(raw.defectEvents, 0), 0, 0.999999);
   next.last = finiteNonnegative(raw.last, Date.now());
+  next.version = 5;
 
   const seen = new Set();
   const sourceAgents = Array.isArray(raw.agents) ? raw.agents : migrateCounts(raw.counts);
@@ -561,6 +1174,26 @@ function hydrate(raw) {
 
   next.owned = {};
   UPGRADES.forEach(upgrade => { if (raw.owned && raw.owned[upgrade.id]) next.owned[upgrade.id] = true; });
+
+  next.ccLevel = clamp(Math.floor(finiteNonnegative(raw.ccLevel, 0)), 0, CC_LEVELS.length);
+  PLOTS.forEach(plot => {
+    const rawPlot = raw.plots && raw.plots[plot.id];
+    const units = {};
+    if (rawPlot && rawPlot.units) {
+      let used = 0;
+      for (const unit of FOUNDRY) {
+        const count = Math.floor(finiteNonnegative(rawPlot.units[unit.id], 0));
+        const kept = Math.min(count, plot.capacity - used);
+        if (kept > 0) { units[unit.id] = kept; used += kept; }
+      }
+    }
+    next.plots[plot.id] = { active: !!(rawPlot && rawPlot.active), units };
+  });
+  PYLONS.forEach(pylon => {
+    const fallback = next.pylons[pylon.id];
+    next.pylons[pylon.id] = clamp(finiteNonnegative(raw.pylons && raw.pylons[pylon.id], fallback), 0, 1);
+  });
+  next.relayCharge = clamp(finiteNonnegative(raw.relayCharge, next.relayCharge || 0.15), 0, 1);
   MODELS.forEach(model => {
     const legacyId = Object.keys(LEGACY_MODEL_MAP).find(id => LEGACY_MODEL_MAP[id] === model.id);
     const mode = raw.buyModes && (raw.buyModes[model.id] || raw.buyModes[legacyId]);
@@ -630,6 +1263,7 @@ let selectedAgentId = null;
 let toastTimer = 0;
 const runtimePositions = new Map();
 const roamRoutes = new Map();
+const walkPlans = new Map();
 const walkGenerations = new Map();
 const activeWalks = new Map();
 const agentHolds = new Map();
@@ -680,6 +1314,96 @@ function announce(message) {
   toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
 }
 
+// Occasional feed line crediting a real owned team with recent output.
+function logIncomeDigest() {
+  const owned = MODELS.filter(model => countOf(model.id) > 0);
+  if (!owned.length) return;
+  const model = pick(owned);
+  const family = state.agents.filter(agent => agent.modelId === model.id);
+  const rate = family.reduce((sum, agent) => sum + agentStats(agent).rate, 0) * integrity() * mods().prodMult;
+  if (rate <= 0) return;
+  const window = 12 + Math.floor(Math.random() * 18);
+  log(model.shortName + " team closed a batch · +" + fmt(rate * window) + " tokens", "g");
+}
+
+// Floating "+N" text over the Ship button's world anchor.
+function spawnGainFx(amount, isSprint) {
+  const fx = $("fx");
+  if (!fx) return;
+  const entry = PATH_NODES.cc_entry;
+  const count = isSprint ? 3 : 1;
+  for (let i = 0; i < count; i++) {
+    const float = document.createElement("b");
+    float.className = "gain-float" + (isSprint ? " is-sprint" : "") + (i ? " is-echo" : "");
+    float.textContent = (i === 0 ? "+" : "") + (i === 0 ? fmt(amount) : "✦");
+    float.style.left = (entry.x + (Math.random() - 0.5) * 0.05 + (i - 1) * 0.018) * 100 + "%";
+    float.style.top = (entry.y - 0.02 - i * 0.012) * 100 + "%";
+    float.style.animationDelay = (i * 40) + "ms";
+    fx.appendChild(float);
+    setTimeout(() => float.remove(), 1600 + i * 80);
+  }
+  while (fx.children.length > 28) fx.firstChild.remove();
+}
+
+function spawnClickSparks(isSprint) {
+  const dock = document.querySelector(".action-dock");
+  const work = $("work");
+  if (!dock || !work) return;
+  const host = document.querySelector(".map-shell") || document.body;
+  const rect = work.getBoundingClientRect();
+  const cx = rect.left + rect.width * 0.22;
+  const cy = rect.top + rect.height * 0.5;
+  const n = isSprint ? 14 : 8;
+  for (let i = 0; i < n; i++) {
+    const spark = document.createElement("i");
+    spark.className = "click-spark" + (isSprint ? " is-sprint" : "");
+    const angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+    const dist = 18 + Math.random() * (isSprint ? 42 : 28);
+    spark.style.left = cx + "px";
+    spark.style.top = cy + "px";
+    spark.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+    spark.style.setProperty("--dy", Math.sin(angle) * dist - 10 + "px");
+    spark.style.setProperty("--rot", (Math.random() * 120 - 60) + "deg");
+    host.appendChild(spark);
+    setTimeout(() => spark.remove(), 520);
+  }
+}
+
+function pulseTokenHud() {
+  const chip = document.querySelector(".hud-primary");
+  const value = $("tok");
+  if (chip) {
+    chip.classList.remove("is-token-pop");
+    requestAnimationFrame(() => chip.classList.add("is-token-pop"));
+    setTimeout(() => chip.classList.remove("is-token-pop"), 320);
+  }
+  if (value) {
+    value.classList.remove("is-tick");
+    requestAnimationFrame(() => value.classList.add("is-tick"));
+    setTimeout(() => value.classList.remove("is-tick"), 280);
+  }
+}
+
+// Nearby agents visibly "work" for a beat when a sprint ships.
+function pulseWorkforce() {
+  $("agents").querySelectorAll(".agent").forEach(element => {
+    element.classList.remove("is-working");
+    requestAnimationFrame(() => element.classList.add("is-working"));
+    setTimeout(() => element.classList.remove("is-working"), 1300);
+  });
+}
+
+function pylonBurstFx(pylon) {
+  const fx = $("fx");
+  if (!fx) return;
+  const ring = document.createElement("i");
+  ring.className = "pylon-burst-ring";
+  ring.style.left = pylon.x * 100 + "%";
+  ring.style.top = pylon.y * 100 + "%";
+  fx.appendChild(ring);
+  setTimeout(() => ring.remove(), 1200);
+}
+
 function needLabel(upgrade) {
   if (!upgrade.need) return "Available";
   return Object.entries(upgrade.need).map(([id, count]) => {
@@ -688,143 +1412,567 @@ function needLabel(upgrade) {
   }).join(" · ");
 }
 
+/* --------------------------------------------------------------------------
+   LIVING WORLD RENDERER
+   Value-noise driven ambience: nothing loops on a visible timer. Wind is a
+   traveling field, waterfalls breathe over minutes, leaves and butterflies
+   are particles, and rare birds cross the canopy. All pixel-quantized.
+   -------------------------------------------------------------------------- */
+
+// Cheap deterministic value noise (no allocations in the hot path).
+function hashNoise(n) {
+  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+function valueNoise1(x) {
+  const i = Math.floor(x);
+  const f = x - i;
+  const u = f * f * (3 - 2 * f);
+  return hashNoise(i) * (1 - u) + hashNoise(i + 1) * u;
+}
+function valueNoise2(x, y) {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf);
+  const v = yf * yf * (3 - 2 * yf);
+  const h = (a, b) => hashNoise(a * 57.31 + b * 113.97);
+  return (h(xi, yi) * (1 - u) + h(xi + 1, yi) * u) * (1 - v) +
+         (h(xi, yi + 1) * (1 - u) + h(xi + 1, yi + 1) * u) * v;
+}
+const fract = value => value - Math.floor(value);
+
 class PixelWorldRenderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d", { alpha: true });
     this.ctx.imageSmoothingEnabled = false;
     this.startTime = performance.now();
-    this.lastFrame = -1;
-    this.leaves = Array.from({ length: 34 }, (_, index) => ({
-      x: (index * 197 + 71) % 1672,
-      y: (index * 113 + 29) % 941,
-      speed: 14 + (index % 5) * 3,
-      phase: index * 0.73,
-      color: ["#9bd451", "#d5e866", "#e6bd55"][index % 3]
-    }));
+    this.lastNow = this.startTime;
     this.treeTips = [
       [31, 38], [92, 55], [170, 42], [250, 63], [332, 38], [445, 61], [505, 43],
       [718, 47], [812, 55], [1019, 43], [1125, 55], [1290, 42], [1450, 58], [1595, 44],
       [150, 245], [503, 327], [870, 328], [1038, 432], [485, 548], [1268, 516],
       [115, 728], [552, 718], [618, 815], [1420, 835], [1570, 760]
     ];
+    // River centerline samples only (matched to painted water, not rock/path).
     this.flowPoints = [
-      [570, 104], [650, 151], [806, 202], [951, 278], [989, 438], [974, 587],
-      [922, 775], [808, 866], [612, 780], [527, 640], [105, 527], [80, 667]
+      { x: 575, y: 118, angle: 0.35, length: 36, phase: 0.04 },
+      { x: 655, y: 165, angle: 0.55, length: 40, phase: 0.51 },
+      { x: 780, y: 210, angle: 1.05, length: 38, phase: 0.21 },
+      { x: 930, y: 285, angle: 1.35, length: 42, phase: 0.72 },
+      { x: 980, y: 420, angle: 1.55, length: 36, phase: 0.34 },
+      { x: 960, y: 575, angle: 1.65, length: 40, phase: 0.88 },
+      { x: 900, y: 760, angle: 2.0, length: 36, phase: 0.13 },
+      { x: 790, y: 855, angle: 2.7, length: 40, phase: 0.63 },
+      { x: 620, y: 790, angle: 0.9, length: 34, phase: 0.42 },
+      { x: 540, y: 650, angle: 1.3, length: 36, phase: 0.79 },
+      { x: 120, y: 540, angle: 1.5, length: 34, phase: 0.27 },
+      { x: 100, y: 700, angle: 1.55, length: 36, phase: 0.95 }
     ];
-    this.waterfalls = [[596, 112, 26, 30], [91, 727, 25, 31], [510, 806, 27, 31]];
-    this.flowers = [
-      [270, 96, 0], [352, 112, 1], [480, 127, 2], [775, 105, 0], [1090, 119, 1], [1321, 176, 2],
-      [382, 392, 1], [548, 414, 0], [676, 484, 2], [1118, 386, 0], [1211, 408, 1],
-      [168, 534, 2], [400, 551, 0], [646, 642, 1], [802, 654, 2], [1008, 609, 0],
-      [1295, 531, 1], [224, 744, 0], [466, 722, 2], [690, 688, 1], [1050, 744, 0], [1510, 757, 2]
+    // Only the painted waterfall lips on the map art.
+    this.waterfalls = [
+      { x: 588, y: 125, width: 22, height: 24, seed: 0.08, speed: 0.9, strands: 4, lean: 0.12 },
+      { x: 95, y: 735, width: 20, height: 26, seed: 0.43, speed: 0.82, strands: 4, lean: -0.08 },
+      { x: 505, y: 812, width: 22, height: 24, seed: 0.76, speed: 0.86, strands: 4, lean: 0.06 }
     ];
+    // No rock seeps — they read as water on stone.
+    this.seeps = [];
+    this.solar = { x: 228, y: 318, width: 104, height: 80 };
+    // Flower beds only (not open meadow noise on empty grass as "broken FX").
+    this.flowerZones = [[300, 700], [560, 700], [620, 480], [820, 545], [950, 700]];
+    this.meadow = { x: 1380, y: 180, width: 240, height: 520 };
+    this.pylons = PYLONS.map(pylon => ({ id: pylon.id, x: Math.round(pylon.x * 1672), y: Math.round(pylon.y * 941), central: !!pylon.central, phase: hashNoise(pylon.x * 99) }));
+
+    this.leaves = [];
+    this.butterflies = [];
+    this.birds = [];
+    this.splashes = [];
+    this.leafTimer = 0;
+    this.butterflyTimer = 4 + Math.random() * 8;
+    this.birdTimer = 18 + Math.random() * 30;
+
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
 
   loop(now) {
     requestAnimationFrame(this.loop);
-    if (!worldMotion || document.hidden) return;
-    const frame = Math.floor((now - this.startTime) / 50);
-    if (frame === this.lastFrame) return;
-    this.lastFrame = frame;
-    this.draw((now - this.startTime) / 1000);
-  }
-
-  draw(time) {
-    const ctx = this.ctx;
-    ctx.clearRect(0, 0, 1672, 941);
-    const gust = Math.max(0, Math.sin(time * 1.15) - 0.25) / 0.75;
-    this.drawWater(ctx, time);
-    this.drawWaterfalls(ctx, time);
-    this.drawTrees(ctx, time, gust);
-    this.drawFlowers(ctx, time, gust);
-    this.drawLeaves(ctx, time, gust);
+    if (!worldMotion || document.hidden) { this.lastNow = now; return; }
+    const dt = Math.min(0.1, (now - this.lastNow) / 1000);
+    this.lastNow = now;
+    if (dt <= 0) return;
+    this.draw((now - this.startTime) / 1000, dt);
   }
 
   clear() {
     this.ctx.clearRect(0, 0, 1672, 941);
   }
 
+  // Wind strength 0..1 at a point: slow ambient field + traveling gust fronts.
+  wind(x, y, time) {
+    const ambient = valueNoise2(x * 0.0016 + time * 0.05, y * 0.0016 + time * 0.023);
+    const front = valueNoise1(time * 0.045 + 3.1);
+    const gustPower = Math.max(0, front - 0.52) * 2.1;
+    const sweep = valueNoise2(x * 0.0011 - time * 0.16, y * 0.002 + 40);
+    return Math.min(1, ambient * 0.45 + gustPower * sweep * 1.3);
+  }
+
+  draw(time, dt) {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, 1672, 941);
+    this.drawWater(ctx, time);
+    this.drawWaterfalls(ctx, time, dt);
+    this.drawBeacons(ctx, time);
+    this.drawFountain(ctx, time);
+    this.drawTrees(ctx, time);
+    this.drawGrass(ctx, time);
+    this.drawSolar(ctx, time);
+    this.drawFireflies(ctx, time);
+    this.drawRelayAura(ctx, time);
+    this.updateLeaves(ctx, time, dt);
+    this.updateButterflies(ctx, time, dt);
+    this.updateBirds(ctx, time, dt);
+    ctx.globalAlpha = 1;
+  }
+
   drawWater(ctx, time) {
-    this.flowPoints.forEach(([x, y], index) => {
-      const frame = Math.floor(time * 5 + index) % 4;
-      const drift = frame * 4;
-      ctx.globalAlpha = 0.48 + frame * 0.08;
-      ctx.fillStyle = index % 2 ? "#c9f7ed" : "#8de7e2";
-      ctx.fillRect(x - 12 + drift, y, 22, 3);
-      ctx.fillRect(x + 10 + drift, y + 7, 13, 2);
-      ctx.fillStyle = "#3fb8ca";
-      ctx.fillRect(x - 5 + drift, y + 12, 18, 2);
+    // Flow ribbons — only paint when the sample still sits in water (never on rock).
+    this.flowPoints.forEach((flow, index) => {
+      if (typeof pointInWater === "function" && !pointInWater(flow.x, flow.y)) return;
+      ctx.save();
+      ctx.translate(flow.x, flow.y);
+      ctx.rotate(flow.angle);
+      for (let ribbon = 0; ribbon < 2; ribbon += 1) {
+        const speed = 0.28 + valueNoise1(index * 3.3 + time * 0.05) * 0.12 + ribbon * 0.015;
+        const progress = fract(time * speed + flow.phase + ribbon * 0.31);
+        const envelope = Math.sin(progress * Math.PI);
+        const travel = -flow.length * 0.45 + progress * flow.length;
+        const length = Math.round(5 + envelope * (8 + (index + ribbon) % 5));
+        const y = ribbon * 4 + Math.round(Math.sin(time * 1.4 + index + ribbon));
+        // Verify ribbon tip is still over water before painting.
+        const worldX = flow.x + Math.cos(flow.angle) * travel;
+        const worldY = flow.y + Math.sin(flow.angle) * travel;
+        if (typeof pointInWater === "function" && !pointInWater(worldX, worldY)) continue;
+        ctx.globalAlpha = envelope * (ribbon === 0 ? 0.42 : 0.26);
+        ctx.fillStyle = ribbon === 1 ? "#4ec4cc" : "#c8fff4";
+        ctx.fillRect(Math.round(travel), y, length, ribbon === 0 ? 2 : 1);
+      }
+      ctx.restore();
+
+      // Tight caustics near the centerline only.
+      const step = Math.floor(time * 2.8);
+      for (let cell = 0; cell < 3; cell++) {
+        const h = hashNoise(index * 17.9 + cell * 5.3 + step * 0.618);
+        if (h < 0.58) continue;
+        const dx = (hashNoise(h * 91) - 0.5) * 28;
+        const dy = (hashNoise(h * 53) - 0.5) * 14;
+        if (typeof pointInWater === "function" && !pointInWater(flow.x + dx, flow.y + dy)) continue;
+        const twinkle = Math.sin(fract(time * 2.6) * Math.PI);
+        ctx.globalAlpha = 0.18 + twinkle * 0.28;
+        ctx.fillStyle = h > 0.84 ? "#ffffff" : "#b8fff2";
+        ctx.fillRect(Math.round(flow.x + dx), Math.round(flow.y + dy), 2, 1);
+      }
     });
     ctx.globalAlpha = 1;
   }
 
-  drawWaterfalls(ctx, time) {
-    const frame = Math.floor(time * 10) % 4;
-    this.waterfalls.forEach(([x, y, width, height], index) => {
+  drawWaterfalls(ctx, time, dt) {
+    this.waterfalls.forEach((fall, index) => {
+      const { x, y, width, height, seed, speed, strands, lean } = fall;
+      // Flow intensity breathes over a multi-minute noise cycle.
+      const intensity = 0.55 + valueNoise1(seed * 20 + time * 0.018) * 0.45;
+
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x, y, width, height);
+      ctx.moveTo(x + 4, y);
+      ctx.lineTo(x + width - 4, y);
+      ctx.lineTo(x + width - 1 + lean * 3, y + height);
+      ctx.lineTo(x + 1 + lean * 3, y + height);
+      ctx.closePath();
       ctx.clip();
-      ctx.globalAlpha = 0.82;
-      for (let stripe = -1; stripe < 5; stripe += 1) {
-        const sy = y + ((stripe * 9 + frame * 3 + index * 2) % (height + 9)) - 6;
-        ctx.fillStyle = stripe % 2 ? "#eafff8" : "#83dfe3";
-        ctx.fillRect(x + 3 + (stripe % 3) * 6, sy, 3, 12);
+
+      const activeStrands = Math.max(3, Math.round(strands * intensity));
+      for (let strand = 0; strand < activeStrands; strand += 1) {
+        const phase = fract(time * (speed * (0.8 + intensity * 0.4) + strand * 0.017) + seed + strand * 0.173);
+        const localX = x + 4 + (strand / Math.max(1, strands - 1)) * (width - 9);
+        const jitter = Math.round(Math.sin(time * (1.7 + strand * 0.06) + seed * 11 + strand) * 0.6);
+        const sy = y - 6 + phase * (height + 7);
+        const segmentHeight = 4 + ((strand * 3 + index * 2) % 6);
+        const alpha = (0.35 + Math.sin(phase * Math.PI) * 0.55) * (0.7 + intensity * 0.45);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = strand % 2 ? "#7ae0e4" : "#d0fff4";
+        ctx.fillRect(Math.round(localX + jitter + lean * phase * 2), Math.round(sy), strand % 3 === 0 ? 3 : 2, segmentHeight + 1);
       }
-      const foamShift = Math.floor(time * 6 + index) % 3;
-      ctx.fillStyle = "#edfff8";
-      ctx.fillRect(x + foamShift, y + height - 5, width - 4, 4);
-      ctx.fillStyle = "#78d5df";
-      ctx.fillRect(x + 5 - foamShift, y + height - 1, width - 7, 2);
+
+      const crest = fract(time * (0.9 + index * 0.1) + seed);
+      ctx.globalAlpha = (0.35 + Math.sin(crest * Math.PI) * 0.45) * intensity;
+      ctx.fillStyle = "#e8fff8";
+      ctx.fillRect(x + 4, y + 1, Math.round(width * 0.4), 2);
+      ctx.fillRect(x + Math.round(width * 0.55), y + 2, Math.round(width * 0.28), 2);
+
+      const foam = Math.floor(time * (4.5 + index * 0.3) + seed * 7) % 3;
+      ctx.globalAlpha = 0.55 * intensity;
+      ctx.fillStyle = "#b0f0ea";
+      ctx.fillRect(x + 3 + foam, y + height - 4, Math.round(width * 0.4), 3);
       ctx.restore();
+
+      // Splash droplets at the base, scaled by intensity.
+      if (Math.random() < dt * (3 + intensity * 6)) {
+        this.splashes.push({
+          x: x + 4 + Math.random() * (width - 8),
+          y: y + height - 2,
+          vx: (Math.random() - 0.5) * 26,
+          vy: -22 - Math.random() * 26,
+          life: 0.5 + Math.random() * 0.3
+        });
+      }
+
+      // Drifting mist above the pool.
+      const mistStep = Math.floor(time * 0.8 + index * 3.1);
+      for (let m = 0; m < 2; m++) {
+        const h = hashNoise(mistStep * 7.1 + m * 3.7 + index);
+        const mt = fract(time * 0.8 + h);
+        ctx.globalAlpha = Math.sin(mt * Math.PI) * 0.12 * intensity;
+        ctx.fillStyle = "#e7fbf4";
+        ctx.fillRect(Math.round(x + h * width - 3), Math.round(y + height - 2 - mt * 12), 6 + Math.round(h * 5), 2);
+      }
     });
+
+    // Integrate splash droplets.
+    for (let i = this.splashes.length - 1; i >= 0; i--) {
+      const drop = this.splashes[i];
+      drop.life -= dt;
+      if (drop.life <= 0) { this.splashes.splice(i, 1); continue; }
+      drop.vy += 130 * dt;
+      drop.x += drop.vx * dt;
+      drop.y += drop.vy * dt;
+      ctx.globalAlpha = Math.min(0.7, drop.life * 1.6);
+      ctx.fillStyle = "#dffaf2";
+      ctx.fillRect(Math.round(drop.x), Math.round(drop.y), 1, 1);
+    }
+    ctx.globalAlpha = 1;
   }
 
-  drawTrees(ctx, time, gust) {
-    const step = Math.round(Math.sin(time * 5.2) * gust * 2);
-    this.treeTips.forEach(([x, y], index) => {
-      const offset = step + (index % 3) - 1;
-      ctx.globalAlpha = 0.32 + gust * 0.48;
-      ctx.fillStyle = index % 2 ? "#c6ed63" : "#96d34c";
-      ctx.fillRect(x + offset, y, 5, 4);
-      ctx.fillRect(x + 6 + offset, y + 4, 4, 4);
-      ctx.fillStyle = "#4c9d43";
-      ctx.fillRect(x - offset, y + 9, 5, 3);
+  drawSeeps(ctx, time) {
+    this.seeps.forEach(seep => {
+      const activity = valueNoise1(seep.seed + time * 0.008);
+      if (activity < 0.52) return;
+      const strength = (activity - 0.52) / 0.48;
+      const driftX = Math.round((valueNoise1(seep.seed * 3 + time * 0.004) - 0.5) * 12);
+      for (let s = 0; s < 3; s++) {
+        const phase = fract(time * (0.5 + s * 0.09) + seep.seed + s * 0.37);
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.35 * strength;
+        ctx.fillStyle = s % 2 ? "#7fd3d2" : "#c2ece2";
+        ctx.fillRect(seep.x + driftX + s * 2 - 2, Math.round(seep.y + phase * 13), 1, 3);
+      }
+      ctx.globalAlpha = 0.2 * strength;
+      ctx.fillStyle = "#a9e4da";
+      ctx.fillRect(seep.x + driftX - 2, seep.y + 13, 6, 1);
     });
     ctx.globalAlpha = 1;
   }
 
-  drawFlowers(ctx, time, gust) {
-    const frame = Math.floor(time * 7) % 4;
-    const swayFrames = [0, -1, 1, 0];
-    const sway = swayFrames[frame] * (gust > 0.12 ? 2 : 1);
-    const petals = ["#fff3c4", "#f28e9f", "#a997ee"];
-    this.flowers.forEach(([x, y, kind], index) => {
-      const local = sway + ((index + frame) % 3 === 0 ? 1 : 0);
-      ctx.fillStyle = "#337b3d";
-      ctx.fillRect(x, y + 4, 2, 7);
-      ctx.fillStyle = petals[kind];
-      ctx.fillRect(x - 3 + local, y, 4, 4);
-      ctx.fillRect(x + 2 + local, y - 2, 4, 4);
-      ctx.fillRect(x + 2 + local, y + 3, 4, 4);
-      ctx.fillStyle = "#f0c84b";
-      ctx.fillRect(x + local, y + 1, 3, 3);
+  drawBeacons(ctx, time) {
+    this.pylons.forEach((pylon, index) => {
+      const charge = (state.pylons && state.pylons[pylon.id]) || 0;
+      const pulse = Math.sin(time * (1.15 + index * 0.04) + pylon.phase * Math.PI * 2) * 0.5 + 0.5;
+      const power = 0.45 + charge * 0.85;
+      ctx.globalAlpha = (0.28 + pulse * 0.38) * power;
+      ctx.fillStyle = "#74d5d2";
+      ctx.fillRect(pylon.x - 10, pylon.y - 20, 20, 18);
+      ctx.globalAlpha = (0.35 + pulse * 0.4) * power;
+      ctx.fillStyle = "#dffff8";
+      ctx.fillRect(pylon.x - 3, pylon.y - 16, 6, 7);
+
+      // Rising motes; denser as the pylon charges.
+      const motes = charge >= 1 ? 7 : charge > 0.5 ? 5 : 3;
+      for (let m = 0; m < motes; m++) {
+        const mt = fract(time * (0.4 + m * 0.09) + pylon.phase + m * 0.41);
+        const mx = pylon.x + Math.round(Math.sin((mt + m) * Math.PI * 2 + index) * 10);
+        ctx.globalAlpha = Math.sin(mt * Math.PI) * 0.85 * power;
+        ctx.fillStyle = m % 2 ? "#ffffff" : "#9ffcf0";
+        ctx.fillRect(mx, Math.round(pylon.y - 6 - mt * 34), m % 3 === 0 ? 2 : 1, m % 3 === 0 ? 2 : 1);
+      }
+
+      if (charge >= 1) {
+        const ringT = fract(time * 1.1 + pylon.phase);
+        const radius = 6 + ringT * 18;
+        ctx.globalAlpha = (1 - ringT) * 0.7;
+        ctx.strokeStyle = "#b8fff6";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(pylon.x - radius, pylon.y - 10 - radius * 0.5, radius * 2, radius);
+      }
     });
+    ctx.globalAlpha = 1;
   }
 
-  drawLeaves(ctx, time, gust) {
-    this.leaves.forEach((leaf, index) => {
-      const fall = (leaf.y + time * leaf.speed) % 1000 - 30;
-      const drift = Math.sin(time * 1.8 + leaf.phase) * 22 + gust * 18;
-      const x = (leaf.x + drift + time * 3) % 1690 - 9;
-      ctx.globalAlpha = 0.38 + (index % 4) * 0.13;
-      ctx.fillStyle = leaf.color;
-      ctx.fillRect(Math.round(x), Math.round(fall), index % 2 ? 5 : 4, 4);
-      if (index % 3 === 0) ctx.fillRect(Math.round(x) + 4, Math.round(fall) + 3, 3, 2);
+  drawFountain(ctx, time) {
+    // Central plaza fountain only (map art bowl ~769, 592).
+    const fx = 769;
+    const fy = 600;
+    for (let i = 0; i < 6; i++) {
+      const mt = fract(time * (0.5 + i * 0.06) + i * 0.21);
+      const arc = Math.sin(mt * Math.PI);
+      const ox = Math.round(Math.sin(time * 1.2 + i * 0.9) * (3 + mt * 6));
+      const oy = Math.round(-mt * 18 - arc * 2);
+      ctx.globalAlpha = arc * 0.55;
+      ctx.fillStyle = i % 2 ? "#e8fffb" : "#8fe8e0";
+      ctx.fillRect(fx + ox, fy + oy - 10, 2, 2);
+    }
+    const ringT = fract(time * 0.55);
+    ctx.globalAlpha = (1 - ringT) * 0.28;
+    ctx.strokeStyle = "#b6f4ec";
+    ctx.lineWidth = 1;
+    const r = 6 + ringT * 12;
+    ctx.strokeRect(Math.round(fx - r), Math.round(fy - r * 0.35), Math.round(r * 2), Math.round(r * 0.7));
+    ctx.globalAlpha = 1;
+  }
+
+  drawFireflies(ctx, time) {
+    // Soft forest-edge fireflies only (not on open rock plazas).
+    for (let i = 0; i < 10; i++) {
+      const seed = i * 17.13;
+      const blink = Math.sin(time * (1.8 + hashNoise(seed) * 1.8) + seed) * 0.5 + 0.5;
+      if (blink < 0.45) continue;
+      // Bias to canopy / garden bands.
+      const x = 80 + hashNoise(seed * 3.1) * 1500;
+      const y = 40 + hashNoise(seed * 5.7) * 200 + (i % 2) * 520;
+      if (y > 280 && y < 500) continue; // skip building band
+      ctx.globalAlpha = (blink - 0.45) * 0.7;
+      ctx.fillStyle = i % 2 ? "#fff6a8" : "#d8ff9a";
+      ctx.fillRect(Math.round(x + Math.sin(time * 0.3 + seed) * 20), Math.round(y), 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  drawRelayAura(ctx, time) {
+    const rx = Math.round(CFG.relay.x * 1672);
+    const ry = Math.round(CFG.relay.y * 941);
+    const charge = state.relayCharge || 0;
+    const pulse = Math.sin(time * 2.4) * 0.5 + 0.5;
+    const power = 0.35 + charge * 0.65 + charge * 0.4;
+    // Soft ground glow.
+    ctx.globalAlpha = 0.18 * power;
+    ctx.fillStyle = "#7dffc8";
+    ctx.fillRect(rx - 18, ry + 4, 36, 8);
+    // Rising signal motes (beacon-like).
+    const motes = charge >= 1 ? 8 : 3 + Math.floor(charge * 4);
+    for (let m = 0; m < motes; m++) {
+      const mt = fract(time * (0.45 + m * 0.08) + m * 0.33);
+      const mx = rx + Math.round(Math.sin((mt + m) * Math.PI * 2) * (8 + charge * 8));
+      ctx.globalAlpha = Math.sin(mt * Math.PI) * 0.9 * power;
+      ctx.fillStyle = m % 2 ? "#fff4a0" : "#9dffe0";
+      ctx.fillRect(mx, Math.round(ry - 4 - mt * 42), 2, 2);
+    }
+    if (charge >= 1 || relayBuffLeft > 0) {
+      const ringT = fract(time * (relayBuffLeft > 0 ? 1.4 : 0.9));
+      const radius = 10 + ringT * 26;
+      ctx.globalAlpha = (1 - ringT) * 0.65;
+      ctx.strokeStyle = relayBuffLeft > 0 ? "#ffe07a" : "#9dffe0";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rx - radius, ry - 8 - radius * 0.45, radius * 2, radius);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  drawTrees(ctx, time) {
+    // Tiny canopy flecks only — never big blocks that look like water on rock.
+    this.treeTips.forEach(([x, y], index) => {
+      const localWind = this.wind(x, y, time + index * 0.13);
+      if (localWind < 0.22) return;
+      const offset = Math.round(Math.sin(time * (2.2 + hashNoise(index)) + index) * (0.6 + localWind * 1.6));
+      ctx.globalAlpha = 0.1 + localWind * 0.28;
+      ctx.fillStyle = index % 2 ? "#9fd45a" : "#6fb84a";
+      ctx.fillRect(x + offset, y, 2, 2);
+      ctx.fillRect(x + 3 + offset, y + 2, 2, 1);
     });
+    ctx.globalAlpha = 1;
+  }
+
+  drawGrass(ctx, time) {
+    // Soft meadow shimmer in the open eastern field only.
+    const step = Math.floor(time * 3.5);
+    for (let i = 0; i < 14; i++) {
+      const h = hashNoise(step * 3.7 + i * 11.3);
+      const gx = this.meadow.x + h * this.meadow.width;
+      const gy = this.meadow.y + hashNoise(h * 71) * this.meadow.height;
+      const localWind = this.wind(gx, gy, time);
+      if (localWind < 0.3) continue;
+      ctx.globalAlpha = (localWind - 0.25) * 0.35;
+      ctx.fillStyle = hashNoise(h * 31) > 0.5 ? "#b8e878" : "#8ec858";
+      const sway = Math.round(Math.sin(time * 3 + i) * localWind);
+      ctx.fillRect(Math.round(gx + sway), Math.round(gy), 3, 1);
+    }
+    // Flower beds only.
+    this.flowerZones.forEach(([fx, fy], index) => {
+      const localWind = this.wind(fx, fy, time + index);
+      if (localWind < 0.28) return;
+      const sway = Math.round(Math.sin(time * 4.5 + index * 2) * (1 + localWind));
+      ctx.globalAlpha = 0.22 + localWind * 0.35;
+      ctx.fillStyle = ["#ffd0e8", "#fff3a0", "#e8d0ff"][index % 3];
+      ctx.fillRect(fx + sway, fy, 2, 2);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  drawSolar(ctx, time) {
+    // A slow diagonal glint sweeps the panels on a noise-gated cadence.
+    const cycle = 11;
+    const slot = Math.floor(time / cycle);
+    if (hashNoise(slot * 6.17) > 0.35) {
+      const t = fract(time / cycle);
+      if (t < 0.16) {
+        const progress = t / 0.16;
+        const gx = this.solar.x + progress * (this.solar.width + 40) - 20;
+        ctx.globalAlpha = Math.sin(progress * Math.PI) * 0.4;
+        ctx.fillStyle = "#eaf9ff";
+        for (let i = 0; i < 5; i++) {
+          const px = Math.round(gx - i * 5);
+          const py = this.solar.y + i * (this.solar.height / 5);
+          if (px > this.solar.x - 2 && px < this.solar.x + this.solar.width) {
+            ctx.fillRect(px, Math.round(py), 2, Math.round(this.solar.height / 5) - 3);
+          }
+        }
+      }
+    }
+    // Tiny energy pulse drifting along the panel edge.
+    const et = fract(time * 0.22);
+    ctx.globalAlpha = 0.4 + Math.sin(time * 6) * 0.15;
+    ctx.fillStyle = "#8ff0ff";
+    ctx.fillRect(Math.round(this.solar.x + et * this.solar.width), this.solar.y + this.solar.height + 2, 2, 1);
+    ctx.globalAlpha = 1;
+  }
+
+  updateLeaves(ctx, time, dt) {
+    // Spawn: lively baseline, more during gusts, capped population.
+    this.leafTimer -= dt;
+    const globalWind = this.wind(800, 300, time);
+    if (this.leafTimer <= 0 && this.leaves.length < 42) {
+      const tip = this.treeTips[Math.floor(Math.random() * this.treeTips.length)];
+      this.leaves.push({
+        x: tip[0] + (Math.random() - 0.5) * 26,
+        y: tip[1] + Math.random() * 8,
+        vx: 0,
+        vy: 14 + Math.random() * 18,
+        phase: Math.random() * 10,
+        fallDist: 70 + Math.random() * 160,
+        startY: tip[1],
+        size: Math.random() < 0.35 ? 4 : 3,
+        color: pick(["#e8ff78", "#c8f05e", "#ffd65d", "#9fdc55", "#f0b84f"]),
+        landed: 0,
+        life: 1
+      });
+      this.leafTimer = (0.28 + Math.random() * 0.55) / (0.55 + globalWind);
+    }
+    for (let i = this.leaves.length - 1; i >= 0; i--) {
+      const leaf = this.leaves[i];
+      if (leaf.landed > 0) {
+        leaf.landed -= dt;
+        leaf.life = Math.min(leaf.life, leaf.landed / 1.4);
+        if (leaf.landed <= 0) { this.leaves.splice(i, 1); continue; }
+      } else {
+        const localWind = this.wind(leaf.x, leaf.y, time);
+        leaf.phase += dt * (3 + localWind * 4);
+        leaf.vx = Math.sin(leaf.phase) * 14 + localWind * 26;
+        leaf.x += leaf.vx * dt;
+        leaf.y += (leaf.vy + Math.sin(leaf.phase * 0.7) * 6) * dt;
+        if (leaf.y - leaf.startY > leaf.fallDist) leaf.landed = 1.2 + Math.random() * 1.4;
+      }
+      const flutter = Math.floor(leaf.phase * 2) % 2;
+      ctx.globalAlpha = 0.92 * leaf.life;
+      ctx.fillStyle = leaf.color;
+      if (leaf.landed > 0) {
+        ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), leaf.size, 1);
+      } else if (flutter) {
+        ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), leaf.size, 1);
+        ctx.fillRect(Math.round(leaf.x + 1), Math.round(leaf.y + 1), 1, 1);
+      } else {
+        ctx.fillRect(Math.round(leaf.x), Math.round(leaf.y), 1, leaf.size);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  updateButterflies(ctx, time, dt) {
+    this.butterflyTimer -= dt;
+    if (this.butterflyTimer <= 0 && this.butterflies.length < 10) {
+      const zone = this.flowerZones[Math.floor(Math.random() * this.flowerZones.length)];
+      const group = 1 + (Math.random() < 0.55 ? 1 : 0) + (Math.random() < 0.25 ? 1 : 0);
+      for (let g = 0; g < group; g++) {
+        this.butterflies.push({
+          x: zone[0] + (Math.random() - 0.5) * 40,
+          y: zone[1] + (Math.random() - 0.5) * 24,
+          homeX: zone[0],
+          homeY: zone[1],
+          seed: Math.random() * 100,
+          life: 20 + Math.random() * 28,
+          color: pick(["#fff8e1", "#ffe06a", "#e0c8ff", "#ffffff", "#ffc0d8"])
+        });
+      }
+      this.butterflyTimer = 3.5 + Math.random() * 7;
+    }
+    for (let i = this.butterflies.length - 1; i >= 0; i--) {
+      const fly = this.butterflies[i];
+      fly.life -= dt;
+      if (fly.life <= 0) { this.butterflies.splice(i, 1); continue; }
+      fly.x = fly.homeX + (valueNoise1(fly.seed + time * 0.14) - 0.5) * 130;
+      fly.y = fly.homeY + (valueNoise1(fly.seed * 2 + time * 0.17) - 0.5) * 70 + Math.sin(time * 3 + fly.seed) * 4;
+      const flap = Math.floor(time * 12 + fly.seed) % 2;
+      const fade = Math.min(1, fly.life, (40 - fly.life) * 0.7);
+      ctx.globalAlpha = 0.95 * Math.max(0.2, fade);
+      ctx.fillStyle = fly.color;
+      const bx = Math.round(fly.x);
+      const by = Math.round(fly.y);
+      if (flap) {
+        ctx.fillRect(bx - 3, by, 3, 2);
+        ctx.fillRect(bx + 1, by, 3, 2);
+      } else {
+        ctx.fillRect(bx - 2, by - 2, 2, 3);
+        ctx.fillRect(bx + 1, by - 2, 2, 3);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  updateBirds(ctx, time, dt) {
+    this.birdTimer -= dt;
+    if (this.birdTimer <= 0 && this.birds.length < 2) {
+      const leftToRight = Math.random() < 0.5;
+      const flock = 2 + Math.floor(Math.random() * 4);
+      const baseY = 30 + Math.random() * 140;
+      const speed = (120 + Math.random() * 70) * (leftToRight ? 1 : -1);
+      for (let b = 0; b < flock; b++) {
+        this.birds.push({
+          x: (leftToRight ? -30 : 1700) - b * 26 * Math.sign(speed),
+          y: baseY + (b % 2) * 14 + b * 4,
+          vx: speed,
+          seed: Math.random() * 10
+        });
+      }
+      this.birdTimer = 14 + Math.random() * 22;
+    }
+    for (let i = this.birds.length - 1; i >= 0; i--) {
+      const bird = this.birds[i];
+      bird.x += bird.vx * dt;
+      if (bird.x < -60 || bird.x > 1740) { this.birds.splice(i, 1); continue; }
+      const y = bird.y + Math.sin(time * 1.8 + bird.seed) * 7;
+      const flap = Math.floor(time * 10 + bird.seed) % 2;
+      const bx = Math.round(bird.x);
+      const by = Math.round(y);
+      ctx.globalAlpha = 0.88;
+      ctx.fillStyle = "#1e3428";
+      if (flap) {
+        ctx.fillRect(bx - 3, by - 2, 3, 2);
+        ctx.fillRect(bx + 1, by - 2, 3, 2);
+        ctx.fillRect(bx, by, 2, 2);
+      } else {
+        ctx.fillRect(bx - 3, by + 1, 3, 2);
+        ctx.fillRect(bx + 1, by + 1, 3, 2);
+        ctx.fillRect(bx, by, 2, 2);
+      }
+    }
     ctx.globalAlpha = 1;
   }
 }
@@ -841,11 +1989,14 @@ function buildStore() {
   seats.classList.add("is-tiered");
   seats.innerHTML = TIERS.map(tier => {
     const models = MODELS.filter(model => model.tier === tier.id);
-    const open = state.lifetime >= tier.unlockLifetime || models.some(model => countOf(model.id) > 0);
+    const open = tierUnlocked(tier) || models.some(model => countOf(model.id) > 0);
+    const lockNote = open
+      ? "Online"
+      : "Lv " + (tier.unlockLevel || 1) + " or " + fmt(tier.unlockLifetime) + " lifetime";
     return `<section class="market-tier${open ? "" : " is-locked"}" id="tier-${tier.id}" data-tier="${tier.id}">
       <div class="tier-heading">
         <div><span class="tier-badge">Tier ${tier.id}</span><h4>${tier.name}</h4><p>${tier.subtitle}</p></div>
-        <span class="tier-lock" id="tier-status-${tier.id}">${open ? "Online" : fmt(tier.unlockLifetime) + " lifetime to unlock"}</span>
+        <span class="tier-lock" id="tier-status-${tier.id}">${lockNote}</span>
       </div>
       <div class="model-grid">${models.map(model => `
     <article class="model-card" id="card-${model.id}" aria-label="${model.name} by ${model.provider}">
@@ -880,7 +2031,17 @@ function buildStore() {
 }
 
 function buildUpgrades() {
-  $("ups").innerHTML = UPGRADES.map(upgrade => `
+  const next = CC_LEVELS[state.ccLevel];
+  const ccCard = `
+    <article class="upgrade-card cc-upgrade-card" id="upgrade-cc">
+      <div class="upgrade-top">
+        <div><strong>Command Center · Level ${state.ccLevel}</strong>
+        <p>${next ? next.blurb + ". +" + Math.round(CFG.ccOutputPerLevel * 100) + "% output, pylons charge " + Math.round(CFG.ccChargePerLevel * 100) + "% faster per level." : "Fully commissioned. The atrium hums."}</p></div>
+        <button class="upgrade-button" id="upbuy-cc" type="button" ${next ? "" : "disabled"}><span id="upcost-cc">${next ? fmt(next.cost) : "Maxed"}</span></button>
+      </div>
+      <span class="upgrade-lock" id="upneed-cc">${next ? "Level " + (state.ccLevel + 1) + " of " + CC_LEVELS.length : "Level " + CC_LEVELS.length + " of " + CC_LEVELS.length}</span>
+    </article>`;
+  $("ups").innerHTML = ccCard + UPGRADES.map(upgrade => `
     <article class="upgrade-card" id="upgrade-${upgrade.id}">
       <div class="upgrade-top">
         <div><strong>${upgrade.name}</strong><p>${upgrade.desc}</p></div>
@@ -889,6 +2050,184 @@ function buildUpgrades() {
       <span class="upgrade-lock" id="upneed-${upgrade.id}">${needLabel(upgrade)}</span>
     </article>`).join("");
   UPGRADES.forEach(upgrade => $("upbuy-" + upgrade.id).addEventListener("click", () => buyUp(upgrade)));
+  $("upbuy-cc").addEventListener("click", buyCcLevel);
+}
+
+/* ---- Pylons, plots, habitats, minions ------------------------------------ */
+
+function buildPylons() {
+  const container = $("pylons");
+  if (!container) return;
+  container.innerHTML = PYLONS.map(pylon => `
+    <button class="pylon-hotspot${pylon.central ? " is-central" : ""}" id="pylon-${pylon.id}" type="button"
+      style="left:${pylon.x * 100}%;top:${pylon.y * 100}%"
+      aria-label="Resonance pylon">
+      <i class="pylon-ring" aria-hidden="true"></i>
+      <span class="pylon-tip" aria-hidden="true"></span>
+    </button>`).join("");
+  PYLONS.forEach(pylon => {
+    $("pylon-" + pylon.id).addEventListener("click", event => {
+      event.stopPropagation();
+      if (activatePylon(pylon.id)) {
+        pylonBurstFx(pylon);
+      } else {
+        announce("Resonance " + Math.round((state.pylons[pylon.id] || 0) * 100) + "% — pylons buff nearby teams while they charge.");
+      }
+    });
+  });
+}
+
+function updatePylons() {
+  PYLONS.forEach(pylon => {
+    const element = $("pylon-" + pylon.id);
+    if (!element) return;
+    const charge = state.pylons[pylon.id] || 0;
+    element.style.setProperty("--charge", Math.round(charge * 100) + "%");
+    element.classList.toggle("is-charged", charge >= 1);
+  });
+}
+
+function buildPlots() {
+  const container = $("plots");
+  if (!container) return;
+  container.innerHTML = PLOTS.map(plot => {
+    const record = plotState(plot.id);
+    const r = plot.rect;
+    return `<div class="plot${record.active ? " is-active" : ""}" id="plot-${plot.id}"
+      style="left:${r.x0 * 100}%;top:${r.y0 * 100}%;width:${(r.x1 - r.x0) * 100}%;height:${(r.y1 - r.y0) * 100}%">
+      <button class="plot-plate" type="button" aria-label="${plot.name} deployment zone">
+        <b>${plot.name}</b>
+        <small id="plot-note-${plot.id}">${record.active ? plotPopulation(plot.id) + "/" + plot.capacity + " deployed" : "Activate · " + fmt(plot.cost)}</small>
+      </button>
+    </div>`;
+  }).join("");
+  PLOTS.forEach(plot => {
+    $("plot-" + plot.id).querySelector(".plot-plate").addEventListener("click", event => {
+      event.stopPropagation();
+      const record = plotState(plot.id);
+      if (!record.active && state.tokens >= plot.cost) {
+        buyPlot(plot);
+        return;
+      }
+      openCommand("docked");
+      const tab = $("tab-habitats");
+      if (tab) tab.click();
+      if (!record.active) announce("Need " + fmt(plot.cost) + " tokens to activate " + plot.name + ".");
+    });
+  });
+}
+
+function buildHabitats() {
+  const container = $("habitats");
+  if (!container) return;
+  container.innerHTML = PLOTS.map(plot => {
+    const record = plotState(plot.id);
+    if (!record.active) {
+      return `<article class="habitat-card is-locked" id="habitat-${plot.id}">
+        <div class="habitat-head">
+          <div><strong>${plot.name}</strong><p>Dormant plot on the campus map.</p></div>
+          <button class="upgrade-button habitat-activate" id="habitat-activate-${plot.id}" type="button">Activate ${fmt(plot.cost)}</button>
+        </div>
+      </article>`;
+    }
+    const population = plotPopulation(plot.id);
+    return `<article class="habitat-card" id="habitat-${plot.id}">
+      <div class="habitat-head">
+        <div><strong>${plot.name}</strong><p id="habitat-note-${plot.id}">${population}/${plot.capacity} foundation models settled</p></div>
+      </div>
+      <div class="habitat-units">${FOUNDRY.map(unit => `
+        <div class="habitat-unit" id="hu-${plot.id}-${unit.id}" style="--model-color:${unit.color}">
+          <span class="habitat-dot" aria-hidden="true"></span>
+          <div class="habitat-copy"><b>${unit.name}</b><small>${unit.era} · ${fmt(unit.rate)}/s · ×<span id="hu-count-${plot.id}-${unit.id}">${record.units[unit.id] || 0}</span></small></div>
+          <button class="buy-button habitat-buy" id="hu-buy-${plot.id}-${unit.id}" type="button">${fmt(unitCostOf(unit))}</button>
+        </div>`).join("")}</div>
+    </article>`;
+  }).join("");
+  PLOTS.forEach(plot => {
+    const record = plotState(plot.id);
+    if (!record.active) {
+      $("habitat-activate-" + plot.id).addEventListener("click", () => {
+        if (!buyPlot(plot)) announce("Need " + fmt(plot.cost) + " tokens to activate " + plot.name + ".");
+      });
+      return;
+    }
+    FOUNDRY.forEach(unit => {
+      $("hu-buy-" + plot.id + "-" + unit.id).addEventListener("click", () => buyUnit(unit, plot.id));
+    });
+  });
+}
+
+function updateHabitats() {
+  PLOTS.forEach(plot => {
+    const record = plotState(plot.id);
+    const note = $("plot-note-" + plot.id);
+    if (note) note.textContent = record.active ? plotPopulation(plot.id) + "/" + plot.capacity + " deployed" : "Activate · " + fmt(plot.cost);
+    if (!record.active) {
+      const activate = $("habitat-activate-" + plot.id);
+      if (activate) activate.disabled = state.tokens < plot.cost;
+      return;
+    }
+    const full = plotPopulation(plot.id) >= plot.capacity;
+    FOUNDRY.forEach(unit => {
+      const buyButton = $("hu-buy-" + plot.id + "-" + unit.id);
+      if (!buyButton) return;
+      const cost = unitCostOf(unit);
+      buyButton.textContent = fmt(cost);
+      buyButton.disabled = full || state.tokens < cost;
+    });
+  });
+}
+
+// Deterministic in-plot home spots with gentle wander applied at runtime.
+function minionHome(plot, ordinal) {
+  const r = plot.rect;
+  const columns = 3;
+  const col = ordinal % columns;
+  const row = Math.floor(ordinal / columns);
+  return {
+    x: r.x0 + (r.x1 - r.x0) * (0.22 + col * 0.28),
+    y: r.y0 + (r.y1 - r.y0) * (0.30 + row * 0.34)
+  };
+}
+
+function renderMinions() {
+  const container = $("minions");
+  if (!container) return;
+  const pieces = [];
+  for (const plot of activePlots()) {
+    let ordinal = 0;
+    const record = plotState(plot.id);
+    for (const unit of FOUNDRY) {
+      const count = record.units[unit.id] || 0;
+      if (!count) continue;
+      const home = minionHome(plot, ordinal++);
+      pieces.push(`<div class="minion" data-plot="${plot.id}" data-home-x="${home.x}" data-home-y="${home.y}"
+        style="left:${home.x * 100}%;top:${home.y * 100}%;--model-color:${unit.color}">
+        <span class="minion-sprite robot-sprite sprite-${unit.sprite}" aria-hidden="true"></span>
+        <b class="minion-count">×${count}</b>
+        <span class="minion-name">${unit.name}</span>
+      </div>`);
+    }
+  }
+  container.innerHTML = pieces.join("");
+}
+
+function wanderMinions() {
+  if (!motionAllowed()) return;
+  $("minions").querySelectorAll(".minion").forEach(element => {
+    if (Math.random() > 0.4) return;
+    const homeX = Number(element.dataset.homeX);
+    const homeY = Number(element.dataset.homeY);
+    element.style.left = (homeX + (Math.random() - 0.5) * 0.016) * 100 + "%";
+    element.style.top = (homeY + (Math.random() - 0.5) * 0.020) * 100 + "%";
+    if (Math.random() < 0.06) {
+      const bubble = document.createElement("span");
+      bubble.className = "minion-zzz";
+      bubble.textContent = pick(["z z", "· · ·", "hm", "ok"]);
+      element.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 2400);
+    }
+  });
 }
 
 function buildRoster() {
@@ -1069,6 +2408,7 @@ function cancelAgentWalk(agent, element) {
   const snapped = projectToWalkway(current) || current;
   walkGenerations.set(agent.uid, (walkGenerations.get(agent.uid) || 0) + 1);
   activeWalks.delete(agent.uid);
+  walkPlans.delete(agent.uid);
   runtimePositions.delete(agent.uid);
   agent.x = snapped.x;
   agent.y = snapped.y;
@@ -1129,46 +2469,85 @@ function bindAgent(element) {
   });
 }
 
+const RETURN_LINES = [
+  "Recalculating with dignity.", "Not walkable. Noted forever.",
+  "The grass had no API.", "Back to pavement. Back to purpose.",
+  "I respect the terrain's decision."
+];
+
 function moveAgentDrag(event) {
   if (!drag) return;
   const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
   if (distance < 5 && !drag.moved) return;
   drag.moved = true;
-  drag.element.classList.add("is-dragging");
+  drag.element.classList.add("is-dragging", "is-held");
+  $("map").classList.add("is-god-hand");
   const point = clientToWorld(event.clientX, event.clientY);
-  const snapped = projectToWalkway(point);
-  if (!snapped) return;
-  drag.snap = snapped;
-  drag.element.style.left = snapped.x * 100 + "%";
-  drag.element.style.top = snapped.y * 100 + "%";
+  drag.point = {
+    x: clamp(point.x, MAP_BOUNDS.minX, MAP_BOUNDS.maxX),
+    y: clamp(point.y, MAP_BOUNDS.minY, MAP_BOUNDS.maxY)
+  };
+  drag.element.style.left = drag.point.x * 100 + "%";
+  drag.element.style.top = drag.point.y * 100 + "%";
 }
 
 function finishAgentDrag(event, cancelled) {
   if (!drag) return;
   const activeDrag = drag;
+  drag = null;
+  $("map").classList.remove("is-god-hand");
   const agent = state.agents.find(item => item.uid === activeDrag.uid);
-  activeDrag.element.classList.remove("is-dragging", "is-picked-up");
+  activeDrag.element.classList.remove("is-dragging", "is-picked-up", "is-held");
 
-  if (agent && !cancelled && activeDrag.moved) {
-    const point = activeDrag.snap || projectToWalkway(clientToWorld(event.clientX, event.clientY));
+  if (agent && !cancelled && activeDrag.moved && activeDrag.point) {
+    const point = activeDrag.point;
     runtimePositions.delete(activeDrag.uid);
     activeWalks.delete(activeDrag.uid);
-    const a = PATH_INDEX[point.aId];
-    const b = PATH_INDEX[point.bId];
-    const entry = point.t < 0.5 ? a : b;
-    agent.x = point.x;
-    agent.y = point.y;
-    roamRoutes.set(activeDrag.uid, { node: entry, previous: entry === a ? b : a, needsEntry: true });
+    walkPlans.delete(activeDrag.uid);
     selectedAgentId = activeDrag.uid;
-    log(modelById(agent.modelId).name + " picked a new campus route.", "g");
-    announce("Snapped to the nearest path. This robot will keep roaming from here.");
+
+    if (isWalkablePoint(point)) {
+      // Valid ground: settle in place and resume roaming from here.
+      const snap = projectToWalkway(point);
+      const a = PATH_INDEX[snap.aId];
+      const b = PATH_INDEX[snap.bId];
+      const entry = snap.t < 0.5 ? a : b;
+      agent.x = snap.x;
+      agent.y = snap.y;
+      roamRoutes.set(activeDrag.uid, { node: entry, previous: entry === a ? b : a, needsEntry: true });
+      renderAgents();
+      const element = $("agents").querySelector(`[data-agent-id="${activeDrag.uid}"]`);
+      if (element) {
+        element.classList.add("is-settling");
+        setTimeout(() => element.classList.remove("is-settling"), 520);
+      }
+      log(modelById(agent.modelId).shortName + " repositioned on the campus.", "s");
+    } else {
+      // Invalid ground: walk back to the nearest walkway that doesn't
+      // require wading through the river.
+      agent.x = point.x;
+      agent.y = point.y;
+      const candidates = walkwayCandidates(point);
+      let target = candidates[0];
+      for (const candidate of candidates.slice(0, 28)) {
+        if (!segmentCrossesWater(point, candidate)) { target = candidate; break; }
+      }
+      const a = PATH_INDEX[target.aId];
+      const b = PATH_INDEX[target.bId];
+      const entry = target.t < 0.5 ? a : b;
+      roamRoutes.set(activeDrag.uid, { node: entry, previous: entry === a ? b : a, needsEntry: true });
+      renderAgents();
+      const element = $("agents").querySelector(`[data-agent-id="${activeDrag.uid}"]`);
+      if (element) element.classList.add("is-returning");
+      showSpeech(activeDrag.uid, pick(RETURN_LINES), 2600);
+      beginAgentWalk(agent, { x: target.x, y: target.y }, null, 0, false);
+    }
     save(false);
   } else if (agent && !activeDrag.moved && !cancelled) {
     selectedAgentId = activeDrag.uid;
+    renderAgents();
   }
 
-  drag = null;
-  renderAgents();
   buildInspector();
   render();
 }
@@ -1211,11 +2590,61 @@ function nextRoamTarget(agent) {
   }
   const node = CAMPUS_PATHS[route.node];
   const forward = node.links.filter(index => index !== route.previous);
-  const choices = forward.length ? forward : node.links;
+  let choices = forward.length ? forward : node.links;
+
+  // Anti-clump: avoid heading to a node another representative is standing on
+  // when there is any other way to go.
+  const others = representativeAgents().filter(other => other.uid !== agent.uid);
+  const roomy = choices.filter(index => {
+    const candidate = CAMPUS_PATHS[index];
+    return !others.some(other => worldDistPx(other, candidate) < 42);
+  });
+  if (roomy.length) choices = roomy;
+
   const nextIndex = pick(choices);
   const next = CAMPUS_PATHS[nextIndex];
   roamRoutes.set(agent.uid, { node: nextIndex, previous: route.node });
   return { x: next.x, y: next.y, nodeIndex: nextIndex };
+}
+
+// Destination nodes worth pausing at, weighted toward the prettiest spots.
+const POI_INDICES = CAMPUS_PATHS
+  .map((node, index) => ({ node, index }))
+  .filter(({ node }) => node.event && node.event !== "water")
+  .map(({ node, index }) => ({
+    index,
+    weight: node.event === "fountain" || node.event === "command" || node.event === "beacon" || node.event === "relay"
+      ? 3
+      : node.event === "meadow" ? 2 : 1
+  }));
+
+function pickPoiIndex(exceptIndex) {
+  const pool = [];
+  for (const poi of POI_INDICES) {
+    if (poi.index === exceptIndex) continue;
+    for (let i = 0; i < poi.weight; i++) pool.push(poi.index);
+  }
+  return pool.length ? pick(pool) : null;
+}
+
+// Send an agent on a purposeful A* stroll to a point of interest.
+function beginIntentWalk(agent) {
+  const startIndex = nearestRoamNode(activeWalkPosition(agent.uid) || runtimePositions.get(agent.uid) || agent);
+  const goalIndex = pickPoiIndex(startIndex);
+  if (goalIndex === null) return false;
+  const path = findPath(startIndex, goalIndex);
+  if (!path || path.length < 2 || path.length > 9) return false;
+  const legs = path.slice(1).map((nodeIndex, i) => ({
+    x: CAMPUS_PATHS[nodeIndex].x,
+    y: CAMPUS_PATHS[nodeIndex].y,
+    nodeIndex,
+    pauseAtEnd: i === path.length - 2
+  }));
+  const first = legs.shift();
+  if (legs.length) walkPlans.set(agent.uid, legs);
+  roamRoutes.set(agent.uid, { node: first.nodeIndex, previous: startIndex });
+  beginAgentWalk(agent, first, first.nodeIndex, 0, false);
+  return true;
 }
 
 function beginAgentWalk(agent, target, nodeIndex, stagger, rebuild) {
@@ -1230,13 +2659,14 @@ function beginAgentWalk(agent, target, nodeIndex, stagger, rebuild) {
 
   walkGenerations.set(agent.uid, generation);
   runtimePositions.set(agent.uid, target);
-  activeWalks.set(agent.uid, { from: current, target, started: performance.now(), duration: durationMs, generation, facing, nodeIndex });
+  activeWalks.set(agent.uid, { from: current, target, started: performance.now(), duration: durationMs, generation, facing, nodeIndex, pauseAtEnd: !!target.pauseAtEnd });
 
   if (rebuild) {
     renderAgents();
   } else {
     element.dataset.facing = facing;
     element.style.setProperty("--walk-time", durationMs + "ms");
+    element.classList.remove("is-dancing");
     element.classList.add("is-walking");
     requestAnimationFrame(() => {
       element.style.left = target.x * 100 + "%";
@@ -1254,9 +2684,62 @@ function beginAgentWalk(agent, target, nodeIndex, stagger, rebuild) {
     runtimePositions.delete(agent.uid);
     const currentElement = $("agents").querySelector(`[data-agent-id="${agent.uid}"]`);
     if (currentElement) currentElement.classList.remove("is-walking");
+
+    // Multi-leg plans (A* routes and return walks) chain leg by leg.
+    const plan = walkPlans.get(agent.uid);
+    if (plan && plan.length && motionAllowed()) {
+      const next = plan.shift();
+      if (!plan.length) walkPlans.delete(agent.uid);
+      if (typeof next.nodeIndex === "number") {
+        roamRoutes.set(agent.uid, { node: next.nodeIndex, previous: walk.nodeIndex ?? -1 });
+      }
+      beginAgentWalk(agent, next, next.nodeIndex, 0, false);
+      return;
+    }
+    walkPlans.delete(agent.uid);
+    if (currentElement) currentElement.classList.remove("is-returning");
     handleEnvironmentArrival(agent, walk.nodeIndex);
+    if (walk.pauseAtEnd) lookAround(agent);
   }, durationMs + 80);
   return true;
+}
+
+// A short "take in the view" beat at a destination: hold position, glance
+// both ways, sometimes dance or say something.
+function lookAround(agent) {
+  const now = performance.now();
+  agentHolds.set(agent.uid, Math.max(agentHolds.get(agent.uid) || 0, now + 2200 + Math.random() * 2600));
+  const element = $("agents").querySelector(`[data-agent-id="${agent.uid}"]`);
+  if (!element) return;
+  const flip = () => {
+    if (!element.isConnected || activeWalks.has(agent.uid)) return;
+    element.dataset.facing = element.dataset.facing === "left" ? "right" : "left";
+  };
+  setTimeout(flip, 700 + Math.random() * 500);
+  if (Math.random() < 0.5) setTimeout(flip, 1900 + Math.random() * 600);
+  if (Math.random() < 0.30) {
+    startAgentDance(agent.uid, 2400 + Math.random() * 1800);
+    if (Math.random() < 0.25) showSpeech(agent.uid, pick(DANCE_LINES), 2600);
+  } else if (Math.random() < 0.15) {
+    const model = modelById(agent.modelId);
+    showSpeech(agent.uid, pick(MODEL_CHATTER[model.sprite] || CHATTER), 3000);
+  }
+}
+
+function startAgentDance(uid, durationMs) {
+  const element = $("agents").querySelector(`[data-agent-id="${uid}"]`);
+  if (!element || activeWalks.has(uid)) return;
+  const now = performance.now();
+  const hold = now + (durationMs || 2800);
+  agentHolds.set(uid, Math.max(agentHolds.get(uid) || 0, hold));
+  element.classList.remove("is-dancing");
+  // Restart CSS animation cleanly.
+  void element.offsetWidth;
+  element.classList.add("is-dancing");
+  clearTimeout(element._danceTimer);
+  element._danceTimer = setTimeout(() => {
+    if (element.isConnected) element.classList.remove("is-dancing");
+  }, durationMs || 2800);
 }
 
 function wanderAgents() {
@@ -1267,10 +2750,21 @@ function wanderAgents() {
     return element && !activeWalks.has(agent.uid) && (agentHolds.get(agent.uid) || 0) <= now;
   });
   if (!candidates.length) return;
-  const moves = Math.max(1, Math.ceil(candidates.length * 0.45));
-  const shuffled = candidates.slice().sort(() => Math.random() - 0.5).slice(0, moves);
+
+  // Sometimes a resting agent just breaks into a little dance instead of walking.
+  const dancers = candidates.filter(() => Math.random() < 0.10).slice(0, 2);
+  dancers.forEach(agent => {
+    startAgentDance(agent.uid, 2600 + Math.random() * 2200);
+    if (Math.random() < 0.25) showSpeech(agent.uid, pick(DANCE_LINES), 2600);
+  });
+
+  const movers = candidates.filter(agent => !dancers.includes(agent));
+  if (!movers.length) return;
+  const moves = Math.max(1, Math.ceil(movers.length * 0.45));
+  const shuffled = movers.slice().sort(() => Math.random() - 0.5).slice(0, moves);
 
   shuffled.forEach((agent, index) => {
+    if (Math.random() < 0.28 && beginIntentWalk(agent)) return;
     const target = nextRoamTarget(agent);
     beginAgentWalk(agent, target, target.nodeIndex, index, false);
   });
@@ -1296,13 +2790,16 @@ function handleEnvironmentArrival(agent, nodeIndex) {
   const type = node && node.event;
   if (!type || !ENVIRONMENT_LINES[type]) return;
   const now = performance.now();
-  if ((interactionCooldowns.get(agent.uid) || 0) > now || Math.random() > 0.62) return;
-  interactionCooldowns.set(agent.uid, now + 10000);
-  agentHolds.set(agent.uid, now + 1200 + Math.random() * 1600);
+  if ((interactionCooldowns.get(agent.uid) || 0) > now || Math.random() > 0.35) return;
+  interactionCooldowns.set(agent.uid, now + 16000);
+  agentHolds.set(agent.uid, now + 1400 + Math.random() * 2000);
   const line = pick(ENVIRONMENT_LINES[type]);
   showSpeech(agent.uid, line, 3400);
   pulseEnvironment(type, node);
-  if (Math.random() < 0.22) log(modelById(agent.modelId).shortName + " checked " + type + ".", "g");
+  if (type === "relay" || type === "fountain" || type === "beacon" || type === "meadow") {
+    if (Math.random() < 0.4) startAgentDance(agent.uid, 2800 + Math.random() * 1600);
+  }
+  if (Math.random() < 0.15) log(modelById(agent.modelId).shortName + " checked " + type + ".", "g");
 }
 
 function showSpeech(uid, text, durationMs) {
@@ -1359,11 +2856,21 @@ function runConversation() {
 function startLivingWorld() {
   setTimeout(wanderAgents, 350);
   setInterval(wanderAgents, 1400);
+  setInterval(wanderMinions, 3200);
   const chatterLoop = () => {
     runConversation();
-    setTimeout(chatterLoop, 9000 + Math.random() * 6500);
+    setTimeout(chatterLoop, 16000 + Math.random() * 14000);
   };
-  setTimeout(chatterLoop, 3500);
+  setTimeout(chatterLoop, 6000);
+  // Rare org-wide ambient remark — the campus mostly works in comfortable silence.
+  setInterval(() => {
+    if (!motionAllowed() || !state.agents.length) return;
+    const idle = representativeAgents().filter(agent => !activeWalks.has(agent.uid));
+    if (!idle.length || Math.random() > 0.2) return;
+    const agent = pick(idle);
+    const model = modelById(agent.modelId);
+    showSpeech(agent.uid, pick(MODEL_CHATTER[model.sprite] || CHATTER), 3200);
+  }, 12000);
 }
 
 function render() {
@@ -1387,7 +2894,7 @@ function render() {
   $("brown").classList.toggle("is-visible", state.brownout);
   $("clickv").textContent = "+" + fmt(CFG.clickBase * m.prodMult);
   $("review").disabled = state.debt <= 0;
-  $("reviewv").textContent = state.debt > 0 ? "clear " + fmt(m.reviewPower) + " defects" : "queue clean";
+  $("reviewv").textContent = state.debt > 0 ? "−" + fmt(reviewClearAmount(m)) : "queue clean";
 
   const plateau = defects > clears ? (defects - clears) / CFG.debtDecay : 0;
   const plateauIntegrity = Math.round(100 / (1 + plateau / CFG.debtHalfPoint));
@@ -1395,14 +2902,24 @@ function render() {
     ? (state.debt > 0 ? "Review is ahead; debt falling" : "Clean queue")
     : "Trend: " + fmt(plateau) + " debt · " + plateauIntegrity + "% integrity";
 
+  const levelInfo = orgLevelInfo();
+  if ($("org-level")) $("org-level").textContent = "Lv " + levelInfo.level;
+  if ($("org-exp")) $("org-exp").textContent = levelInfo.into + "/" + levelInfo.need + " XP";
+  if ($("org-exp-bar")) $("org-exp-bar").style.width = Math.round(levelInfo.progress * 100) + "%";
+  updateGuide();
+
   MODELS.forEach(updateModelCard);
   TIERS.forEach(tier => {
     const tierModels = MODELS.filter(model => model.tier === tier.id);
-    const open = state.lifetime >= tier.unlockLifetime || tierModels.some(model => countOf(model.id) > 0);
+    const open = tierUnlocked(tier) || tierModels.some(model => countOf(model.id) > 0);
     const section = $("tier-" + tier.id);
     const status = $("tier-status-" + tier.id);
     if (section) section.classList.toggle("is-locked", !open);
-    if (status) status.textContent = open ? "Online" : fmt(Math.max(0, tier.unlockLifetime - state.lifetime)) + " lifetime left";
+    if (status) {
+      status.textContent = open
+        ? "Online"
+        : "Need Lv " + (tier.unlockLevel || 1) + " (you: " + levelInfo.level + ")";
+    }
   });
   UPGRADES.forEach(upgrade => {
     const bought = has(upgrade.id);
@@ -1416,11 +2933,31 @@ function render() {
   });
 
   const agentsById = new Map(state.agents.map(agent => [agent.uid, agent]));
+  const attuned = attunedModelIds();
+  const glitchy = quality < 0.72;
   $("agents").querySelectorAll(".agent").forEach(element => {
     const agent = agentsById.get(element.dataset.agentId);
     element.classList.toggle("is-browned", !!agent && state.brownout && agentStats(agent).burn > 0);
+    element.classList.toggle("is-attuned", !!agent && attuned.has(agent.modelId));
+    element.classList.toggle("is-glitched", !!agent && glitchy && agentStats(agent).defects > 0);
   });
+  updatePylons();
+  updateRelay();
+  updateHabitats();
   updateInspectorStats();
+}
+
+function updateBurstUI() {
+  const meter = $("burst-meter");
+  const hint = $("burst-hint");
+  if (!meter || !hint) return;
+  const ready = burstCharge >= 1;
+  meter.style.width = Math.round(Math.min(1, burstCharge) * 100) + "%";
+  meter.parentElement.classList.toggle("is-ready", ready);
+  const hasOrg = state.agents.length > 0;
+  hint.textContent = !hasOrg ? "recruit to unlock sprints"
+    : ready ? "sprint ready ×" + focusFactor().toFixed(2)
+    : "sprint " + Math.round(burstCharge * 100) + "%";
 }
 
 /* --------------------------------------------------------------------------
@@ -1521,7 +3058,7 @@ function setWorldMotion(enabled, persist, announceChange) {
     state.agents.forEach(agent => cancelAgentWalk(agent, $("agents").querySelector(`[data-agent-id="${agent.uid}"]`)));
     $("agents").querySelectorAll(".is-walking").forEach(element => element.classList.remove("is-walking"));
   }
-  else if (pixelWorldRenderer) pixelWorldRenderer.draw((performance.now() - pixelWorldRenderer.startTime) / 1000);
+  else if (pixelWorldRenderer) pixelWorldRenderer.draw((performance.now() - pixelWorldRenderer.startTime) / 1000, 0.016);
   if (persist !== false) saveUIPreferences();
   if (announceChange) announce(worldMotion ? "World motion on. The campus is awake." : "World motion off. The campus is resting.");
 }
@@ -1601,9 +3138,86 @@ function loadUIPreferences() {
   setWorldMotion(uiPreferences.motionOn, false, false);
 }
 
+function exportSave() {
+  save(false);
+  try {
+    const payload = localStorage.getItem(CFG.saveKey) || JSON.stringify(state);
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "agent-org-idle-save.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    if ($("saved")) $("saved").textContent = "Save downloaded";
+    announce("Save file downloaded. Keep it safe — you can import it later.");
+  } catch (error) {
+    announce("Could not export save from this browser.");
+  }
+}
+
+function importSave(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || ""));
+      state = hydrate(parsed || {});
+      runtimePositions.clear();
+      roamRoutes.clear();
+      walkGenerations.clear();
+      activeWalks.clear();
+      agentHolds.clear();
+      interactionCooldowns.clear();
+      selectedAgentId = null;
+      burstCharge = 1;
+      relayBuffLeft = 0;
+      buildStore();
+      buildUpgrades();
+      buildPylons();
+      buildPlots();
+      buildHabitats();
+      renderMinions();
+      renderAgents();
+      buildInspector();
+      buildRoster();
+      render();
+      save(true);
+      announce("Save imported. Welcome back.");
+      log("save imported · level " + orgLevel() + ".", "s");
+    } catch (error) {
+      announce("That file was not a valid Agent Org Idle save.");
+    }
+  };
+  reader.readAsText(file);
+}
+
 function bindUI() {
   $("work").addEventListener("click", doWork);
   $("review").addEventListener("click", doReview);
+  const relayBtn = $("field-relay");
+  if (relayBtn) {
+    relayBtn.addEventListener("click", event => {
+      event.stopPropagation();
+      if (activateRelay()) return;
+      const charge = Math.round((state.relayCharge || 0) * 100);
+      const near = agentsNearRelay().length;
+      announce(near
+        ? "Field Relay " + charge + "% — visitors are charging it faster. Tap when ready."
+        : "Field Relay " + charge + "% — send agents into the open meadow to charge it, then broadcast.");
+    });
+  }
+  if ($("export-save")) $("export-save").addEventListener("click", exportSave);
+  if ($("import-save")) {
+    $("import-save").addEventListener("click", () => $("import-file") && $("import-file").click());
+  }
+  if ($("import-file")) {
+    $("import-file").addEventListener("change", event => {
+      const file = event.target.files && event.target.files[0];
+      importSave(file);
+      event.target.value = "";
+    });
+  }
   $("panel-toggle").addEventListener("click", () => {
     if ($("game").classList.contains("panel-closed")) openCommand("docked");
     else closeCommand(true);
@@ -1702,8 +3316,14 @@ function bindUI() {
     interactionCooldowns.clear();
     selectedAgentId = null;
     saveAcc = 0;
+    burstCharge = 1;
+    relayBuffLeft = 0;
     logLines.length = 0;
     buildStore();
+    buildUpgrades();
+    buildPlots();
+    buildHabitats();
+    renderMinions();
     renderAgents();
     buildInspector();
     buildRoster();
@@ -1731,6 +3351,11 @@ function initUI() {
 
   if (!load()) log("cold start. Ship a task to fund the first seat.");
   buildStore();
+  buildUpgrades();
+  buildPylons();
+  buildPlots();
+  buildHabitats();
+  renderMinions();
   renderAgents();
   buildInspector();
   buildRoster();
@@ -1738,13 +3363,15 @@ function initUI() {
   render();
   startLivingWorld();
 
-  setTimeout(() => $("map-hint").classList.add("is-hidden"), 9000);
+  updateGuide();
   let previous = performance.now();
   setInterval(() => {
     const now = performance.now();
     const dt = Math.min(1, (now - previous) / 1000);
     previous = now;
     step(dt, false);
+    burstCharge = Math.min(1, burstCharge + dt / CFG.burstCooldownS);
+    updateBurstUI();
     render();
     saveAcc += dt;
     if (saveAcc >= CFG.saveEveryMs / 1000) { saveAcc = 0; save(true); }
@@ -1755,10 +3382,15 @@ function initUI() {
 globalThis.__AGENT_ORG__ = {
   get state() { return state; },
   setState(next) { state = hydrate(next || {}); },
+  get burstCharge() { return burstCharge; },
+  setBurstCharge(value) { burstCharge = value; },
   freshState, hydrate, step, doWork, doReview, buy, buyUp, costOf, upCostOf,
   countOf, representativeAgents, setModelFamilyMode, prodPerSec, burnPerSec, fullBurnPerSec, defectsPerSec, clearsPerSec,
   integrity, mods, unlocked, modelUnlocked, activeSynergies, agentStats, projectToWalkway,
-  MODELS, TIERS, REASONING, MAP_BOUNDS, PATH_NODES, PATH_EDGES, CAMPUS_PATHS, UPGRADES, SYNERGIES, CFG, WORLD
+  buyPlot, buyUnit, activatePylon, buyCcLevel, foundationPerSec, attunedModelIds, focusFactor,
+  unitCostOf, unitCount, plotState, reviewClearAmount, findPath, isWalkablePoint, segmentCrossesWater,
+  MODELS, TIERS, REASONING, MAP_BOUNDS, PATH_NODES, PATH_EDGES, CAMPUS_PATHS, UPGRADES, SYNERGIES,
+  FOUNDRY, PLOTS, PYLONS, CC_LEVELS, CFG, WORLD
 };
 
 if (typeof document !== "undefined" && document.getElementById("game")) initUI();

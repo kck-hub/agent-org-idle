@@ -1771,13 +1771,13 @@ body {
   pointer-events: none;
 }
 
-.sprite-hy3 { background-position: 0% 0%; }
-.sprite-flash { background-position: 33.3333% 0%; }
-.sprite-nano { background-position: 66.6667% 0%; }
-.sprite-glm { background-position: 100% 0%; }
-.sprite-sonnet { background-position: 0% 100%; translate: 0 15%; }
-.sprite-opus { background-position: 33.3333% 100%; translate: 0 15%; }
-.sprite-architect { background-position: 66.6667% 100%; translate: 0 15%; }
+.sprite-hy3 { --walk-cycle: 0.58s; --idle-cycle: 5.7s; background-position: 0% 0%; }
+.sprite-flash { --walk-cycle: 0.46s; --idle-cycle: 4.1s; background-position: 33.3333% 0%; }
+.sprite-nano { --walk-cycle: 0.54s; --idle-cycle: 5.2s; background-position: 66.6667% 0%; }
+.sprite-glm { --walk-cycle: 0.62s; --idle-cycle: 6.3s; background-position: 100% 0%; }
+.sprite-sonnet { --walk-cycle: 0.64s; --idle-cycle: 6.8s; background-position: 0% 100%; translate: 0 15%; }
+.sprite-opus { --walk-cycle: 0.68s; --idle-cycle: 7.3s; background-position: 33.3333% 100%; translate: 0 15%; }
+.sprite-architect { --walk-cycle: 0.56s; --idle-cycle: 6.1s; background-position: 66.6667% 100%; translate: 0 15%; }
 
 .sprite-frame {
   overflow: hidden;
@@ -1901,8 +1901,10 @@ body {
 }
 
 @keyframes robot-walk {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-3px) rotate(1deg); }
+  0%, 100% { transform: translateY(0) rotate(-0.6deg); }
+  25% { transform: translateY(-2px) rotate(0.5deg); }
+  50% { transform: translateY(0) rotate(0.6deg); }
+  75% { transform: translateY(-2px) rotate(-0.5deg); }
 }
 
 /* Ambient map life */
@@ -1921,7 +1923,8 @@ body {
   width: 1672px;
   height: 941px;
   pointer-events: none;
-  image-rendering: pixelated;
+  image-rendering: auto;
+  opacity: 0.96;
 }
 
 /* Canvas owns continuous world motion. Keep this layer only for short-lived
@@ -3034,17 +3037,18 @@ select:focus-visible,
   height: 92px;
   background: none;
   overflow: hidden;
-  image-rendering: pixelated;
-  scale: 0.72 0.72;
+  image-rendering: auto;
+  scale: 0.58 0.58;
   transform-origin: 50% 100%;
   transition: transform 150ms steps(3, end), scale 150ms steps(3, end), filter 150ms linear;
   translate: 0 0 !important;
-  filter: none;
+  filter: saturate(0.72) contrast(0.8) brightness(0.98) drop-shadow(0 2px 1px rgba(18, 50, 34, 0.2));
+  opacity: 0.93;
 }
 
 /* The generated atlas faces left. Flip only while travelling right. */
-.agent[data-facing="left"] .agent-sprite { scale: 0.72 0.72; }
-.agent[data-facing="right"] .agent-sprite { scale: -0.72 0.72; }
+.agent[data-facing="left"] .agent-sprite { scale: 0.58 0.58; }
+.agent[data-facing="right"] .agent-sprite { scale: -0.58 0.58; }
 
 .agent-sprite::before {
   content: "";
@@ -3055,87 +3059,108 @@ select:focus-visible,
   background-repeat: no-repeat;
   background-position: -92px var(--walk-row);
   transform: translate(var(--walk-x1), var(--walk-y1));
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
 /* The generated cells have different internal padding. These registration
    offsets keep each torso centered and every boot on the same path baseline. */
 .agent-sprite.sprite-hy3 {
   --walk-row: 0px;
-  --walk-x0: -10px; --walk-x1: -5px; --walk-x2: 0px; --walk-x3: 6px;
+  --walk-x0: -4px; --walk-x1: -2px; --walk-x2: 0px; --walk-x3: 2px;
 }
 .agent-sprite.sprite-flash {
   --walk-row: -92px;
-  --walk-y0: 6px; --walk-y1: 6px; --walk-y2: 6px; --walk-y3: 5px;
-  --walk-x0: -8px; --walk-x1: -2px; --walk-x2: 3px; --walk-x3: 12px;
+  --walk-y0: 2px; --walk-y1: 2px; --walk-y2: 2px; --walk-y3: 2px;
+  --walk-x0: -3px; --walk-x1: -1px; --walk-x2: 1px; --walk-x3: 5px;
 }
 .agent-sprite.sprite-nano {
   --walk-row: -184px;
-  --walk-x0: -3px; --walk-x1: 1px; --walk-x2: 7px; --walk-x3: 19px;
+  --walk-x0: -1px; --walk-x1: 0px; --walk-x2: 3px; --walk-x3: 7px;
 }
 .agent-sprite.sprite-glm {
   --walk-row: -276px;
-  --walk-x0: -5px; --walk-x1: 1px; --walk-x2: 4px; --walk-x3: 13px;
+  --walk-x0: -2px; --walk-x1: 0px; --walk-x2: 2px; --walk-x3: 5px;
 }
 .agent-sprite.sprite-sonnet {
   --walk-row: -368px;
-  --walk-x0: -2px; --walk-x1: 4px; --walk-x2: 8px; --walk-x3: 19px;
+  --walk-x0: -1px; --walk-x1: 2px; --walk-x2: 3px; --walk-x3: 7px;
 }
 .agent-sprite.sprite-opus {
   --walk-row: -460px;
-  --walk-x0: 0px; --walk-x1: 7px; --walk-x2: -1px; --walk-x3: 21px;
+  --walk-x0: 0px; --walk-x1: 3px; --walk-x2: 0px; --walk-x3: 8px;
 }
 .agent-sprite.sprite-architect {
   --walk-row: -552px;
-  --walk-y0: 27px; --walk-y1: 28px; --walk-y2: 27px; --walk-y3: 27px;
-  --walk-x0: -4px; --walk-x1: 1px; --walk-x2: 10px; --walk-x3: 13px;
+  --walk-y0: 10px; --walk-y1: 11px; --walk-y2: 10px; --walk-y3: 10px;
+  --walk-x0: -2px; --walk-x1: 0px; --walk-x2: 4px; --walk-x3: 5px;
 }
 
-.agent.is-walking .agent-sprite { animation: none; }
+.agent.is-walking .agent-sprite {
+  animation: robot-travel-bob var(--walk-cycle, 0.58s) steps(4, end) infinite;
+}
+
+.agent:not(.is-walking):not(.is-picked-up):not(.is-dragging) .agent-sprite {
+  animation: robot-idle var(--idle-cycle, 5.8s) steps(1, end) infinite;
+}
+
+.agent:nth-child(3n + 2) .agent-sprite { animation-delay: -1.7s; }
+.agent:nth-child(3n) .agent-sprite { animation-delay: -3.1s; }
 
 .agent.is-walking .agent-sprite::before {
-  animation: robot-footfall 0.58s linear infinite;
+  animation: robot-footfall var(--walk-cycle, 0.58s) linear infinite;
 }
 
+.agent:nth-child(3n + 2).is-walking .agent-sprite::before,
+.agent:nth-child(3n + 2).is-walking::after { animation-delay: -0.17s; }
+
+.agent:nth-child(3n).is-walking .agent-sprite::before,
+.agent:nth-child(3n).is-walking::after { animation-delay: -0.31s; }
+
 .agent::after {
-  left: 32px;
+  left: 35px;
   bottom: -1px;
-  width: 28px;
-  height: 7px;
-  background: rgba(24, 55, 35, 0.24);
+  width: 22px;
+  height: 5px;
+  background: rgba(24, 55, 35, 0.18);
   filter: none;
   border-radius: 50%;
   transition: transform 150ms steps(3, end), opacity 150ms linear, filter 150ms linear;
 }
 
 .agent:hover .agent-sprite,
-.agent.is-selected .agent-sprite { filter: brightness(1.08); }
+.agent.is-selected .agent-sprite {
+  filter: saturate(0.9) contrast(0.9) brightness(1.04) drop-shadow(0 2px 1px rgba(18, 50, 34, 0.24));
+}
 
-.agent.is-walking::after { animation: footfall-shadow 0.58s steps(2, end) infinite; }
-.agent-label { top: 67px; }
+.agent.is-walking::after { animation: footfall-shadow var(--walk-cycle, 0.58s) steps(2, end) infinite; }
+.agent-label { top: 62px; }
 .agent-speech { bottom: 78px; }
 
 .agent-mode {
-  top: 24px;
-  right: 19px;
+  top: 29px;
+  right: 24px;
+  width: 12px;
+  height: 12px;
+  border-width: 1px;
+  font-size: 5px;
   transition: transform 150ms steps(3, end);
 }
 
 .agent-stack-count {
   position: absolute;
   z-index: 4;
-  left: 17px;
-  top: 22px;
-  min-width: 21px;
-  min-height: 15px;
-  padding: 2px 4px;
+  left: 22px;
+  top: 27px;
+  min-width: 18px;
+  min-height: 12px;
+  padding: 2px 3px 1px;
   border: 1px solid #fff1bd;
   border-radius: 2px;
   background: #173c2b;
   box-shadow: 2px 2px 0 rgba(6, 23, 16, 0.38);
   color: #76f2e8;
   font-family: Monaco, "Cascadia Mono", monospace;
-  font-size: 7px;
+  font-size: 6px;
   font-weight: 900;
   line-height: 1;
   transition: transform 150ms steps(3, end);
@@ -3150,12 +3175,12 @@ select:focus-visible,
 .agent.is-picked-up .agent-sprite,
 .agent.is-dragging .agent-sprite {
   transform: translateY(-11px) rotate(-2deg);
-  scale: 0.82 0.82;
-  filter: brightness(1.1);
+  scale: 0.68 0.68;
+  filter: saturate(0.9) contrast(0.9) brightness(1.06) drop-shadow(0 3px 2px rgba(18, 50, 34, 0.22));
 }
 
 .agent.is-picked-up[data-facing="right"] .agent-sprite,
-.agent.is-dragging[data-facing="right"] .agent-sprite { scale: -0.82 0.82; }
+.agent.is-dragging[data-facing="right"] .agent-sprite { scale: -0.68 0.68; }
 
 .agent.is-picked-up::after,
 .agent.is-dragging::after {
@@ -3174,6 +3199,19 @@ select:focus-visible,
   25%, 49.99% { background-position-x: -92px; transform: translate(var(--walk-x1), var(--walk-y1)); }
   50%, 74.99% { background-position-x: -184px; transform: translate(var(--walk-x2), var(--walk-y2)); }
   75%, 100% { background-position-x: -276px; transform: translate(var(--walk-x3), var(--walk-y3)); }
+}
+
+@keyframes robot-travel-bob {
+  0%, 50%, 100% { transform: translateY(0); }
+  25%, 75% { transform: translateY(-1px); }
+}
+
+@keyframes robot-idle {
+  0%, 61%, 100% { transform: translateY(0) rotate(0); }
+  64% { transform: translateY(-1px) rotate(-0.7deg); }
+  67% { transform: translateY(0) rotate(0); }
+  70% { transform: translateY(-1px) rotate(0.7deg); }
+  73% { transform: translateY(0) rotate(0); }
 }
 
 @keyframes footfall-shadow {
@@ -3211,11 +3249,13 @@ select:focus-visible,
 }
 
 .game.motion-off .environment-pulse { display: none; }
+.game.motion-off .agent-sprite { animation: none !important; }
 .game.motion-off .agent.is-walking .agent-sprite::before { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
+  .agent.is-walking .agent-sprite,
   .agent.is-walking .agent-sprite::before,
-  .agent.is-walking::after { animation-duration: 0.82s; }
+  .agent.is-walking::after { animation-duration: calc(var(--walk-cycle, 0.58s) + 0.24s); }
   .environment-pulse { animation-duration: 2.6s; }
 }
 
@@ -3251,4 +3291,2548 @@ select:focus-visible,
     flex-wrap: wrap;
     gap: 2px 6px;
   }
+}
+
+/* --------------------------------------------------------------------------
+   V2 OVERHAUL — compact command HUD, centered actions, right-hand feed,
+   resonance pylons, habitat plots, god-hand carry, and living-world states.
+   This layer intentionally comes last and wins the cascade.
+   -------------------------------------------------------------------------- */
+
+/* ---- Compact floating top bar ---- */
+.topbar {
+  left: 50%;
+  right: auto;
+  width: auto;
+  max-width: min(58vw, 760px);
+  min-height: 50px;
+  gap: 8px;
+  padding: 6px 8px;
+  transform: translateX(calc(-50% - var(--dock-width) / 2));
+  transition: transform 220ms ease, opacity 170ms ease;
+}
+
+.game.panel-closed .topbar,
+.game.command-full .topbar {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+.game.map-only .topbar { transform: translateX(calc(-50% - var(--dock-width) / 2)) translateY(-18px); }
+.game.map-only.panel-closed .topbar { transform: translateX(-50%) translateY(-18px); }
+
+.topbar .brand-mark { width: 30px; height: 30px; flex-basis: 30px; }
+.topbar-tools { display: flex; align-items: center; gap: 5px; }
+
+.hud { flex: 0 1 auto; gap: 4px; }
+
+.hud-chip {
+  height: 38px;
+  min-width: 0;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #b9aa77;
+  border-radius: 2px;
+  background: #e6dbae;
+  box-shadow: inset -2px -2px 0 rgba(96, 111, 70, 0.14), inset 2px 2px 0 rgba(255, 248, 214, 0.55);
+}
+
+.hud-chip > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.hud-primary.hud-chip { min-width: 96px; }
+.hud-primary .hud-value { font-size: 15px; max-width: 110px; }
+.hud-stat.hud-chip { min-width: 0; }
+.hud-stat b { font-size: 9px; }
+
+.px-icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  image-rendering: pixelated;
+}
+
+/* Pixel coin */
+.icon-token { background: transparent; }
+.icon-token::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: #eec74f;
+  border: 1px solid #8d6b1f;
+  border-radius: 1px;
+  box-shadow: inset -2px -2px 0 #c99a2e, inset 2px 2px 0 #ffe98f;
+}
+.icon-token::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 5px;
+  width: 2px;
+  height: 6px;
+  background: #8d6b1f;
+}
+
+/* ---- Centered chunky action dock ---- */
+.action-dock {
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: min(430px, calc(100vw - var(--dock-width) - 40px));
+  transform: translateX(calc(-50% - var(--dock-width) / 2));
+  padding: 6px;
+  gap: 6px;
+  grid-template-columns: 1.18fr 1fr;
+  transition: transform 220ms ease, opacity 170ms ease;
+}
+
+.game.panel-closed .action-dock { transform: translateX(-50%); width: min(430px, calc(100vw - 32px)); }
+.game.map-only .action-dock { transform: translateX(calc(-50% - var(--dock-width) / 2)) translateY(22px); }
+.game.map-only.panel-closed .action-dock { transform: translateX(-50%) translateY(22px); }
+
+.primary-action,
+.secondary-action {
+  position: relative;
+  min-height: 60px;
+  padding: 8px 12px;
+  border: 2px solid #2c5a40;
+  overflow: hidden;
+  transition: transform 90ms steps(2, end), filter 120ms linear, box-shadow 90ms steps(2, end), opacity 140ms ease;
+}
+
+.primary-action {
+  background: linear-gradient(#1d4a34, #173b2b);
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.26), inset 0 2px 0 rgba(255, 255, 255, 0.09), 0 0 0 1px #0b2118;
+}
+
+.primary-action:hover {
+  filter: brightness(1.12);
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.26), inset 0 2px 0 rgba(255, 255, 255, 0.12), 0 0 0 1px #0b2118, 0 0 14px rgba(88, 215, 223, 0.35);
+}
+
+.secondary-action { box-shadow: inset 0 -4px 0 rgba(96, 111, 70, 0.22), 0 0 0 1px #0b2118; }
+.secondary-action:hover:not(:disabled) { filter: brightness(1.06); box-shadow: inset 0 -4px 0 rgba(96, 111, 70, 0.22), 0 0 0 1px #0b2118, 0 0 12px rgba(88, 215, 223, 0.22); }
+
+.primary-action:active,
+.secondary-action:active:not(:disabled) {
+  transform: translateY(2px);
+  filter: brightness(1.02);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2), 0 0 0 1px #0b2118;
+}
+
+.primary-action.is-pulsing .action-symbol { animation: action-pop 260ms steps(3, end); }
+
+.primary-action strong,
+.secondary-action strong { font-size: 11px; letter-spacing: 0.02em; text-transform: uppercase; }
+.primary-action small,
+.secondary-action small { font-size: 7px; letter-spacing: 0.05em; }
+.primary-action small b, .primary-action small em,
+.secondary-action small b, .secondary-action small em { font-style: normal; color: #7deede; }
+.secondary-action small { color: var(--ink-faint); }
+.secondary-action small b, .secondary-action small em { color: #1f7d70; }
+
+.action-symbol {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+  background: rgba(125, 238, 222, 0.14);
+  border: 1px solid rgba(125, 238, 222, 0.35);
+  color: #7deede;
+  font-size: 20px;
+}
+
+.burst-meter {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 4px;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 0;
+}
+
+.burst-meter b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: #46c2b4;
+  transition: width 120ms linear;
+}
+
+.burst-meter.is-ready b { background: #7deede; box-shadow: 0 0 6px rgba(125, 238, 222, 0.9); }
+
+@keyframes action-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25) rotate(4deg); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Live feed, bottom right ---- */
+.feed {
+  left: auto;
+  right: calc(var(--dock-width) + 26px);
+  bottom: 16px;
+  width: 272px;
+  border: 2px solid var(--glass-line);
+  transition: right 220ms ease, height 200ms ease, padding 200ms ease, opacity 170ms ease, transform 210ms ease;
+}
+
+.game.panel-closed .feed { right: 16px; }
+.feed-lines { height: 84px; }
+.feed-lines div { font-size: 8px; line-height: 1.5; }
+.feed-lines div.s { color: #1c7d80; }
+.feed-lines div.t { color: #7c5fb8; }
+
+/* ---- Resonance pylons ---- */
+.pylons { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+
+.pylon-hotspot {
+  --charge: 0%;
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  translate: -50% -58%;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.pylon-ring {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: conic-gradient(#5fe3d8 var(--charge), rgba(9, 36, 30, 0.45) 0);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 60% 72%, transparent 74%);
+  mask: radial-gradient(circle, transparent 58%, #000 60% 72%, transparent 74%);
+  opacity: 0.66;
+  transition: opacity 150ms linear;
+}
+
+.pylon-hotspot:hover .pylon-ring { opacity: 1; }
+
+.pylon-tip {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  border: 1px solid #0b2118;
+  background: #7deede;
+  color: #0b2118;
+  font-family: Monaco, monospace;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 11px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 140ms linear, translate 140ms steps(2, end);
+}
+
+.pylon-tip::after { content: "!"; }
+
+.pylon-hotspot.is-charged .pylon-ring { opacity: 1; animation: pylon-ready 1.3s steps(4, end) infinite; }
+.pylon-hotspot.is-charged .pylon-tip { opacity: 1; translate: -50% -3px; animation: pylon-bounce 1.1s steps(3, end) infinite; }
+.pylon-hotspot:active .pylon-ring { transform: scale(0.9); }
+
+@keyframes pylon-ready {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(125, 238, 222, 0.7)); }
+  50% { filter: drop-shadow(0 0 8px rgba(125, 238, 222, 1)); }
+}
+
+@keyframes pylon-bounce {
+  0%, 100% { translate: -50% -3px; }
+  50% { translate: -50% -7px; }
+}
+
+/* ---- Habitat plots on the map ---- */
+.plots { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+
+.plot {
+  position: absolute;
+  border: 2px dashed rgba(112, 77, 47, 0.4);
+  border-radius: 2px;
+  transition: border-color 160ms linear, box-shadow 160ms linear;
+}
+
+.plot:hover { border-color: rgba(112, 77, 47, 0.85); }
+
+.plot.is-active {
+  border: 2px solid rgba(36, 127, 123, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(125, 238, 222, 0.18);
+}
+
+.plot.is-active:hover { border-color: rgba(36, 127, 123, 0.95); }
+
+.plot-plate {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 4px 7px 3px;
+  border: 1px solid #fff1bd;
+  outline: 1px solid var(--ink);
+  border-radius: 1px;
+  background: rgba(23, 59, 43, 0.92);
+  color: #f4e9be;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 100ms steps(2, end), background 120ms linear;
+}
+
+.plot-plate:hover { background: rgba(33, 82, 60, 0.96); transform: translateY(-1px); }
+.plot-plate b { font-family: Monaco, "Cascadia Mono", monospace; font-size: 7px; letter-spacing: 0.04em; text-transform: uppercase; }
+.plot-plate small { margin-top: 1px; color: #7deede; font-family: Monaco, monospace; font-size: 6px; }
+
+/* ---- Foundation minions ---- */
+.minions { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+
+.minion {
+  position: absolute;
+  width: 44px;
+  height: 52px;
+  translate: -50% -88%;
+  transition: left 3s linear, top 3s linear;
+}
+
+.minion-sprite {
+  position: absolute;
+  inset: 0;
+  filter: saturate(0.8) brightness(1.02) drop-shadow(0 2px 1px rgba(18, 50, 34, 0.25));
+  animation: minion-bob 3.6s steps(2, end) infinite;
+}
+
+.minion:nth-child(2n) .minion-sprite { animation-delay: -1.8s; }
+
+.minion-count {
+  position: absolute;
+  right: -4px;
+  top: 2px;
+  min-width: 14px;
+  padding: 1px 2px;
+  border: 1px solid #fff1bd;
+  border-radius: 1px;
+  background: var(--model-color, #247f7b);
+  color: #08251b;
+  font-family: Monaco, monospace;
+  font-size: 6px;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 1px 1px 0 rgba(6, 23, 16, 0.4);
+}
+
+.minion-name {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  padding: 1px 4px;
+  border: 1px solid var(--ink);
+  background: #f2e7bd;
+  color: var(--ink);
+  font-family: Monaco, monospace;
+  font-size: 6px;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -50% 0;
+  transition: opacity 140ms linear;
+}
+
+.minion:hover .minion-name { opacity: 1; }
+
+.minion-zzz {
+  position: absolute;
+  left: 70%;
+  top: -8px;
+  color: #0e3a2b;
+  font-family: Monaco, monospace;
+  font-size: 8px;
+  font-weight: 900;
+  animation: zzz-rise 2.4s steps(6, end) forwards;
+  text-shadow: 1px 1px 0 rgba(244, 233, 190, 0.8);
+}
+
+@keyframes minion-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+@keyframes zzz-rise {
+  0% { opacity: 0; transform: translateY(2px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ---- God hand: carry, settle, return ---- */
+.map-shell.is-god-hand { cursor: grabbing; }
+
+.map-shell.is-god-hand .map-wash {
+  background:
+    radial-gradient(circle 145px at var(--pointer-x, 46%) var(--pointer-y, 48%), rgba(137, 255, 221, 0.06), transparent 72%),
+    radial-gradient(circle at 50% 48%, transparent 34%, rgba(8, 40, 32, 0.26) 100%);
+}
+
+.agent.is-held { transition: none; }
+
+.agent.is-held .agent-sprite {
+  animation: god-hold 1.7s ease-in-out infinite;
+  transform: translateY(-13px);
+  scale: 0.68 0.68;
+  filter: saturate(0.95) contrast(0.9) brightness(1.1)
+    drop-shadow(0 6px 3px rgba(18, 50, 34, 0.18))
+    drop-shadow(0 0 7px rgba(125, 238, 222, 0.85));
+}
+
+.agent.is-held[data-facing="right"] .agent-sprite { scale: -0.68 0.68; }
+
+.agent.is-held::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 58px;
+  height: 58px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(125, 238, 222, 0.32), rgba(125, 238, 222, 0.08) 55%, transparent 72%);
+  animation: god-aura 1.7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes god-hold {
+  0%, 100% { rotate: -3deg; translate: 0 0; }
+  50% { rotate: 3deg; translate: 0 -3px; }
+}
+
+@keyframes god-aura {
+  0%, 100% { opacity: 0.7; scale: 1; }
+  50% { opacity: 1; scale: 1.08; }
+}
+
+.agent.is-settling .agent-sprite { animation: god-settle 420ms steps(4, end); }
+
+@keyframes god-settle {
+  0% { transform: translateY(-9px); }
+  55% { transform: translateY(1px) scaleY(0.88) scaleX(1.1); }
+  80% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+.agent.is-returning .agent-sprite { filter: saturate(0.6) contrast(0.85) brightness(0.97) drop-shadow(0 2px 1px rgba(18, 50, 34, 0.2)); }
+
+/* ---- Attunement, work pulses, defect glitches ---- */
+.agent.is-attuned .agent-sprite {
+  filter: saturate(0.85) contrast(0.85) brightness(1.05)
+    drop-shadow(0 2px 1px rgba(18, 50, 34, 0.22))
+    drop-shadow(0 0 4px rgba(94, 227, 216, 0.75));
+}
+
+.agent.is-attuned::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 5px;
+  height: 5px;
+  translate: -50% 0;
+  background: #5fe3d8;
+  box-shadow: 0 0 5px #5fe3d8;
+  animation: attune-blink 2.2s steps(2, end) infinite;
+  pointer-events: none;
+}
+
+@keyframes attune-blink {
+  0%, 100% { opacity: 0.5; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+.agent.is-working .agent-sprite { animation: work-hop 320ms steps(3, end) 3; }
+
+@keyframes work-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px) rotate(-1.4deg); }
+}
+
+.agent.is-glitched .agent-sprite { animation: glitch-jitter 1.9s steps(2, end) infinite; }
+
+@keyframes glitch-jitter {
+  0%, 88%, 100% { transform: translate(0, 0); filter: none; }
+  90% { transform: translate(-2px, 1px); filter: hue-rotate(90deg) saturate(2); }
+  92% { transform: translate(2px, -1px); filter: hue-rotate(-60deg); }
+  94% { transform: translate(-1px, 0); filter: none; }
+}
+
+/* ---- FX layer: floating gains + pylon bursts ---- */
+.fx-layer { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+
+.gain-float {
+  position: absolute;
+  translate: -50% -100%;
+  color: #fff6cf;
+  font-family: Monaco, "Cascadia Mono", monospace;
+  font-size: 13px;
+  font-weight: 900;
+  text-shadow: 1px 1px 0 #0b2118, -1px 1px 0 #0b2118, 1px -1px 0 #0b2118, -1px -1px 0 #0b2118;
+  animation: gain-rise 1.35s steps(9, end) forwards;
+}
+
+.gain-float.is-sprint { color: #7deede; font-size: 16px; }
+
+@keyframes gain-rise {
+  0% { opacity: 0; transform: translateY(6px); }
+  12% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-34px); }
+}
+
+.pylon-burst-ring {
+  position: absolute;
+  width: 40px;
+  height: 26px;
+  translate: -50% -70%;
+  border: 3px solid #7deede;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(11, 33, 24, 0.55), 0 0 22px #6ff0e2;
+  animation: pylon-burst 1.1s steps(7, end) forwards;
+}
+
+@keyframes pylon-burst {
+  0% { opacity: 0; scale: 0.3; }
+  15% { opacity: 1; }
+  100% { opacity: 0; scale: 3.1; }
+}
+
+/* ---- Habitats panel (Command Center) ---- */
+.tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.habitat-list { display: grid; gap: 8px; }
+
+.habitat-card {
+  padding: 9px;
+  border: 2px solid #8d875c;
+  background: #e4d5a1;
+  box-shadow: inset 0 0 0 1px rgba(255, 240, 196, 0.5);
+}
+
+.habitat-card.is-locked { opacity: 0.82; }
+.habitat-head { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.habitat-head strong { font-family: Monaco, monospace; font-size: 9px; text-transform: uppercase; }
+.habitat-head p { margin: 2px 0 0; color: var(--ink-soft); font-size: 8px; }
+.habitat-activate { min-width: 96px; padding: 0 8px; }
+
+.habitat-units { margin-top: 8px; display: grid; gap: 4px; }
+
+.habitat-unit {
+  padding: 5px 6px;
+  border: 1px solid #aca171;
+  background: #ecdfae;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.habitat-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border: 1px solid rgba(11, 33, 24, 0.55);
+  background: var(--model-color, #247f7b);
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.18);
+}
+
+.habitat-copy { min-width: 0; flex: 1; }
+.habitat-copy b { display: block; font-family: Monaco, monospace; font-size: 8px; }
+.habitat-copy small { color: var(--ink-faint); font-family: Monaco, monospace; font-size: 6px; }
+.habitat-buy { min-width: 62px; padding: 0 6px; }
+
+.cc-upgrade-card { border-color: #23888a; box-shadow: inset 0 0 0 1px #cffff4, 2px 2px 0 rgba(20, 79, 62, 0.25); }
+
+/* ---- Motion off: still world, calm UI ---- */
+.game.motion-off .minion { transition: none; }
+.game.motion-off .minion-sprite,
+.game.motion-off .pylon-hotspot.is-charged .pylon-ring,
+.game.motion-off .pylon-hotspot.is-charged .pylon-tip,
+.game.motion-off .agent.is-attuned::before,
+.game.motion-off .agent.is-glitched .agent-sprite,
+.game.motion-off .agent.is-working .agent-sprite { animation: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1100px) {
+  .topbar { max-width: min(70vw, 700px); }
+}
+
+@media (max-width: 820px) {
+  .topbar,
+  .game.panel-closed .topbar {
+    left: 10px;
+    right: 10px;
+    max-width: none;
+    transform: none;
+    justify-content: space-between;
+  }
+  .game.map-only .topbar,
+  .game.map-only.panel-closed .topbar { transform: translateY(-18px); }
+  .topbar .brand-mark { display: none; }
+
+  .action-dock,
+  .game.panel-closed .action-dock {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    transform: none;
+  }
+  .game.map-only .action-dock,
+  .game.map-only.panel-closed .action-dock { transform: translateY(22px); }
+
+  .feed,
+  .game.panel-closed .feed {
+    left: auto;
+    right: 10px;
+    bottom: 86px;
+    width: min(236px, calc(100vw - 20px));
+  }
+  .feed-lines { height: 46px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent.is-held .agent-sprite { animation-duration: 3s; }
+  .pylon-hotspot.is-charged .pylon-ring,
+  .pylon-hotspot.is-charged .pylon-tip { animation: none; }
+  .minion-sprite { animation-duration: 6s; }
+}
+
+/* ==========================================================================
+   ARCADE FIELD OPS — addictive 8-bit idle overhaul
+   Crisp pixels, dark HUD chrome, juicier robots, new archetypes.
+   ========================================================================== */
+
+:root {
+  --arcade-ink: #0a1a14;
+  --arcade-panel: #12281f;
+  --arcade-panel-2: #18362a;
+  --arcade-sand: #ffe8a3;
+  --arcade-sand-dim: #d9c07a;
+  --arcade-gold: #ffd24a;
+  --arcade-gold-deep: #e0a01a;
+  --arcade-cyan: #4ef0e2;
+  --arcade-mint: #8dffb0;
+  --arcade-hot: #ff6b5a;
+  --arcade-border: #fff1bd;
+  --arcade-shadow: #04110c;
+}
+
+/* Crisp world — stop mushy filters on the campus. */
+.map-art {
+  filter: saturate(1.08) contrast(1.06) brightness(1.02);
+  image-rendering: auto;
+}
+
+.world-canvas {
+  image-rendering: pixelated;
+  opacity: 1;
+}
+
+/* Soft CRT vignette + scanline kiss without burying the map. */
+.map-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 48%, rgba(4, 17, 12, 0.28) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(0, 0, 0, 0.035) 3px 4px
+    );
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+/* ---- Dark arcade HUD chrome ---- */
+.topbar.glass,
+.action-dock.glass,
+.feed.glass,
+.map-hint.glass,
+.brownout.glass {
+  background:
+    linear-gradient(180deg, rgba(255, 241, 189, 0.06), transparent 40%),
+    var(--arcade-panel);
+  border: 3px solid var(--arcade-border);
+  outline: 2px solid var(--arcade-ink);
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px var(--arcade-shadow),
+    5px 5px 0 rgba(4, 17, 12, 0.55),
+    inset 0 1px 0 rgba(255, 241, 189, 0.12);
+  color: var(--arcade-sand);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.topbar {
+  min-height: 64px;
+  padding: 8px 10px;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--arcade-border);
+  border-radius: 2px;
+  background:
+    linear-gradient(145deg, #2a5a45, #143528);
+  box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.35), 2px 2px 0 rgba(4, 17, 12, 0.5);
+}
+
+.brand-mark i {
+  background: var(--arcade-cyan);
+  box-shadow: 0 0 0 2px rgba(78, 240, 226, 0.25), 0 0 6px var(--arcade-cyan);
+}
+
+.brand-block h1 {
+  color: var(--arcade-sand);
+  font-size: 12px;
+  text-shadow: 2px 2px 0 #04110c;
+  letter-spacing: 0.04em;
+}
+
+.eyebrow { color: var(--arcade-cyan) !important; }
+
+/* Token chip is the dopamine meter. */
+.hud-primary,
+.hud-stat {
+  height: 46px;
+  border: 2px solid #3d6a55;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #1c3f31, #12281f);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 241, 189, 0.08);
+  color: var(--arcade-sand);
+}
+
+.hud-primary {
+  min-width: 118px;
+  border-color: var(--arcade-gold-deep);
+  background:
+    radial-gradient(circle at 18% 30%, rgba(255, 210, 74, 0.18), transparent 55%),
+    linear-gradient(180deg, #2a4020, #1a2e18);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.3),
+    0 0 0 1px #6a4e12,
+    0 0 12px rgba(255, 210, 74, 0.18);
+}
+
+.hud-primary .hud-value,
+#tok {
+  color: var(--arcade-gold);
+  font-family: Monaco, "Cascadia Mono", monospace;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 8px rgba(255, 210, 74, 0.45), 2px 2px 0 #2a1a00;
+  line-height: 1;
+}
+
+.hud-label,
+.hud-stat small {
+  color: var(--arcade-sand-dim) !important;
+}
+
+.hud-stat b {
+  color: var(--arcade-cyan);
+  font-size: 13px;
+  text-shadow: 1px 1px 0 #04110c;
+}
+
+.hud-primary.is-token-pop {
+  animation: token-chip-pop 300ms steps(4, end);
+}
+
+#tok.is-tick {
+  animation: token-num-pop 280ms steps(4, end);
+}
+
+@keyframes token-chip-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.08); filter: brightness(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes token-num-pop {
+  0% { transform: scale(1); color: var(--arcade-gold); }
+  40% { transform: scale(1.22); color: #fff7c8; }
+  100% { transform: scale(1); color: var(--arcade-gold); }
+}
+
+.status-dot {
+  box-shadow: 0 0 0 3px rgba(141, 255, 176, 0.2), 0 0 8px rgba(141, 255, 176, 0.55);
+}
+
+.ring {
+  background: conic-gradient(var(--arcade-cyan) var(--fill), rgba(78, 240, 226, 0.12) 0);
+}
+.ring i { background: #12281f; }
+
+.debt-icon {
+  border-color: var(--arcade-hot);
+}
+.debt-icon::before,
+.debt-icon::after { background: var(--arcade-hot); }
+
+.motion-toggle,
+.map-only-button,
+.icon-button {
+  border: 2px solid #3d6a55 !important;
+  border-radius: 2px !important;
+  background: #18362a !important;
+  color: var(--arcade-sand) !important;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.motion-toggle:hover,
+.map-only-button:hover,
+.icon-button:hover {
+  background: #214838 !important;
+  border-color: var(--arcade-cyan) !important;
+  color: var(--arcade-cyan) !important;
+}
+
+/* ---- Ship / Review: chunky arcade buttons ---- */
+.action-dock {
+  padding: 8px;
+  gap: 8px;
+}
+
+.primary-action,
+.secondary-action {
+  min-height: 68px;
+  border: 3px solid var(--arcade-ink) !important;
+  border-radius: 2px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.primary-action {
+  color: #2a1a00 !important;
+  background:
+    linear-gradient(180deg, #ffe07a 0%, var(--arcade-gold) 38%, var(--arcade-gold-deep) 100%) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -5px 0 rgba(160, 90, 0, 0.45),
+    0 0 0 1px #6a4e12,
+    0 4px 0 #5a3a08,
+    0 0 18px rgba(255, 210, 74, 0.28) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.primary-action strong {
+  color: #2a1a00 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase;
+}
+
+.primary-action small {
+  color: #5a3a08 !important;
+  font-weight: 800;
+}
+
+.primary-action small b,
+.primary-action small em {
+  color: #0d4a3a !important;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.primary-action:hover {
+  filter: brightness(1.08) saturate(1.1);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -5px 0 rgba(160, 90, 0, 0.4),
+    0 0 0 1px #6a4e12,
+    0 4px 0 #5a3a08,
+    0 0 26px rgba(255, 210, 74, 0.55) !important;
+}
+
+.primary-action:active {
+  transform: translateY(3px) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.12),
+    inset 0 -2px 0 rgba(160, 90, 0, 0.35),
+    0 0 0 1px #6a4e12,
+    0 1px 0 #5a3a08 !important;
+}
+
+.primary-action.is-pulsing {
+  animation: ship-flash 260ms steps(3, end);
+}
+
+@keyframes ship-flash {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.35) saturate(1.2); }
+  100% { filter: brightness(1); }
+}
+
+.action-symbol {
+  width: 36px !important;
+  height: 36px !important;
+  flex-basis: 36px !important;
+  border: 2px solid rgba(42, 26, 0, 0.35) !important;
+  border-radius: 2px !important;
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #2a1a00 !important;
+  font-size: 22px !important;
+  font-weight: 900;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.burst-meter {
+  height: 5px !important;
+  left: 8px !important;
+  right: 8px !important;
+  bottom: 5px !important;
+  background: rgba(42, 26, 0, 0.35) !important;
+  border: 1px solid rgba(42, 26, 0, 0.25);
+}
+
+.burst-meter b {
+  background: linear-gradient(90deg, #1d7a62, var(--arcade-cyan)) !important;
+}
+
+.burst-meter.is-ready b {
+  background: linear-gradient(90deg, #ff8a3a, #fff36a) !important;
+  box-shadow: 0 0 8px rgba(255, 210, 74, 0.95) !important;
+  animation: meter-ready 0.7s steps(2, end) infinite;
+}
+
+@keyframes meter-ready {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+
+.secondary-action {
+  color: var(--arcade-sand) !important;
+  background: linear-gradient(180deg, #244a3a, #163228) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 241, 189, 0.1),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.28),
+    0 3px 0 #0a1a14 !important;
+}
+
+.secondary-action strong { color: var(--arcade-sand) !important; }
+.secondary-action small { color: var(--arcade-sand-dim) !important; }
+.secondary-action small b,
+.secondary-action small em { color: var(--arcade-cyan) !important; }
+
+.secondary-action:hover:not(:disabled) {
+  border-color: var(--arcade-cyan) !important;
+  filter: brightness(1.08);
+}
+
+/* ---- Feed + hint dark chrome ---- */
+.feed-head,
+.feed-lines div,
+.map-hint,
+.brownout {
+  color: var(--arcade-sand);
+  font-family: Monaco, "Cascadia Mono", monospace;
+}
+
+.feed-head { color: var(--arcade-cyan) !important; }
+.feed-lines div.g { color: var(--arcade-mint) !important; }
+.feed-lines div.s { color: var(--arcade-cyan) !important; }
+.feed-lines div.t { color: #c9a1ef !important; }
+.feed-head button {
+  color: var(--arcade-sand-dim);
+  background: transparent;
+  border: 1px solid #3d6a55;
+  border-radius: 2px;
+}
+
+.live-dot {
+  background: var(--arcade-mint) !important;
+  box-shadow: 0 0 6px var(--arcade-mint);
+  animation: live-blink 1.2s steps(2, end) infinite;
+}
+
+@keyframes live-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---- Field robots: bigger, punchier, full color ---- */
+.agent {
+  width: 104px !important;
+  height: 104px !important;
+  transform: translate(-50%, -90%) !important;
+  z-index: 12;
+}
+
+.agent-sprite {
+  width: 104px !important;
+  height: 104px !important;
+  scale: 0.72 0.72 !important;
+  image-rendering: pixelated !important;
+  filter: saturate(1.15) contrast(1.05) brightness(1.04)
+    drop-shadow(0 3px 0 rgba(8, 28, 18, 0.55)) !important;
+  opacity: 1 !important;
+}
+
+.agent[data-facing="left"] .agent-sprite { scale: 0.72 0.72 !important; }
+.agent[data-facing="right"] .agent-sprite { scale: -0.72 0.72 !important; }
+
+.agent-sprite::before {
+  image-rendering: pixelated !important;
+}
+
+.agent:hover .agent-sprite,
+.agent.is-selected .agent-sprite {
+  filter: saturate(1.25) contrast(1.08) brightness(1.1)
+    drop-shadow(0 3px 0 rgba(8, 28, 18, 0.55))
+    drop-shadow(0 0 8px rgba(78, 240, 226, 0.95)) !important;
+}
+
+.agent.is-picked-up .agent-sprite,
+.agent.is-dragging .agent-sprite {
+  scale: 0.84 0.84 !important;
+  filter: saturate(1.2) contrast(1.08) brightness(1.12)
+    drop-shadow(0 8px 2px rgba(8, 28, 18, 0.4)) !important;
+}
+
+.agent.is-picked-up[data-facing="right"] .agent-sprite,
+.agent.is-dragging[data-facing="right"] .agent-sprite {
+  scale: -0.84 0.84 !important;
+}
+
+/* Stronger walk bounce — readable 8-bit hop. */
+.agent.is-walking .agent-sprite {
+  animation: robot-travel-bob-arcade var(--walk-cycle, 0.5s) steps(4, end) infinite !important;
+}
+
+@keyframes robot-travel-bob-arcade {
+  0%, 50%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(-2deg); }
+  75% { transform: translateY(-3px) rotate(2deg); }
+}
+
+.agent:not(.is-walking):not(.is-picked-up):not(.is-dragging) .agent-sprite {
+  animation: robot-idle-arcade var(--idle-cycle, 4.8s) steps(1, end) infinite !important;
+}
+
+@keyframes robot-idle-arcade {
+  0%, 58%, 100% { transform: translateY(0) scaleY(1); }
+  60% { transform: translateY(1px) scaleY(0.94); }
+  64% { transform: translateY(-3px) scaleY(1.04); }
+  68% { transform: translateY(0) scaleY(1); }
+  82% { transform: translateY(0) rotate(-1.5deg); }
+  86% { transform: translateY(-2px) rotate(1.5deg); }
+  90% { transform: translateY(0) rotate(0); }
+}
+
+.agent.is-working .agent-sprite {
+  animation: work-hop-arcade 280ms steps(3, end) 4 !important;
+}
+
+@keyframes work-hop-arcade {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  40% { transform: translateY(-7px) rotate(-3deg) scaleY(1.06); }
+  70% { transform: translateY(1px) scaleY(0.9) scaleX(1.08); }
+}
+
+.agent-label {
+  top: 74px !important;
+  border: 2px solid var(--arcade-ink) !important;
+  background: var(--arcade-sand) !important;
+  color: var(--arcade-ink) !important;
+  font-size: 8px !important;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 rgba(4, 17, 12, 0.45);
+  text-transform: uppercase;
+}
+
+.agent-stack-count {
+  left: 18px !important;
+  top: 22px !important;
+  min-width: 22px !important;
+  min-height: 14px !important;
+  border: 2px solid var(--arcade-border) !important;
+  background: #0d2a20 !important;
+  color: var(--arcade-gold) !important;
+  font-size: 8px !important;
+  box-shadow: 2px 2px 0 rgba(4, 17, 12, 0.5), 0 0 8px rgba(255, 210, 74, 0.25);
+}
+
+.agent-mode {
+  top: 24px !important;
+  right: 18px !important;
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 7px !important;
+  border: 2px solid var(--arcade-border) !important;
+  background: var(--arcade-panel) !important;
+  color: var(--arcade-cyan) !important;
+}
+
+.agent.is-attuned .agent-sprite {
+  filter: saturate(1.25) contrast(1.08) brightness(1.1)
+    drop-shadow(0 3px 0 rgba(8, 28, 18, 0.5))
+    drop-shadow(0 0 10px rgba(78, 240, 226, 0.9)) !important;
+}
+
+.agent.is-attuned::before {
+  width: 7px !important;
+  height: 7px !important;
+  top: 10px !important;
+  background: var(--arcade-cyan) !important;
+  box-shadow: 0 0 8px var(--arcade-cyan), 0 0 14px rgba(78, 240, 226, 0.7) !important;
+}
+
+/* Market glyphs stay crisp */
+.model-glyph,
+.agent-mini,
+.roster-sprite {
+  border: 2px solid #3d6a55 !important;
+  border-radius: 2px !important;
+  background: #0f241c !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 241, 189, 0.12) !important;
+  image-rendering: pixelated;
+}
+
+.robot-sprite {
+  image-rendering: pixelated !important;
+}
+
+/* ---- NEW ARCHETYPES: volt / ember / prism / sage / wrench / relic ---- */
+.robot-sprite.sprite-volt,
+.robot-sprite.sprite-ember,
+.robot-sprite.sprite-prism,
+.robot-sprite.sprite-sage,
+.robot-sprite.sprite-wrench,
+.robot-sprite.sprite-relic {
+  background-size: contain !important;
+  background-position: center bottom !important;
+  background-repeat: no-repeat !important;
+  image-rendering: pixelated !important;
+  translate: 0 0 !important;
+}
+
+.robot-sprite.sprite-volt { background-image: url("assets/robots/volt-stand.png") !important; --walk-cycle: 0.42s; --idle-cycle: 3.8s; }
+.robot-sprite.sprite-ember { background-image: url("assets/robots/ember-stand.png") !important; --walk-cycle: 0.56s; --idle-cycle: 5.4s; }
+.robot-sprite.sprite-prism { background-image: url("assets/robots/prism-stand.png") !important; --walk-cycle: 0.6s; --idle-cycle: 6.2s; }
+.robot-sprite.sprite-sage { background-image: url("assets/robots/sage-stand.png") !important; --walk-cycle: 0.62s; --idle-cycle: 6.6s; }
+.robot-sprite.sprite-wrench { background-image: url("assets/robots/wrench-stand.png") !important; --walk-cycle: 0.5s; --idle-cycle: 4.6s; }
+.robot-sprite.sprite-relic { background-image: url("assets/robots/relic-stand.png") !important; --walk-cycle: 0.7s; --idle-cycle: 7.2s; }
+
+/* Field walk overrides for new archetypes (own 4-frame strips). */
+.agent-sprite.sprite-volt,
+.agent-sprite.sprite-ember,
+.agent-sprite.sprite-prism,
+.agent-sprite.sprite-sage,
+.agent-sprite.sprite-wrench,
+.agent-sprite.sprite-relic {
+  background: none !important;
+  --walk-x0: 0px; --walk-x1: 0px; --walk-x2: 0px; --walk-x3: 0px;
+  --walk-y0: 0px; --walk-y1: 0px; --walk-y2: 0px; --walk-y3: 0px;
+  --walk-row: 0px;
+}
+
+.agent-sprite.sprite-volt::before,
+.agent-sprite.sprite-ember::before,
+.agent-sprite.sprite-prism::before,
+.agent-sprite.sprite-sage::before,
+.agent-sprite.sprite-wrench::before,
+.agent-sprite.sprite-relic::before {
+  background-size: 368px 92px !important;
+  background-position: 0 0 !important;
+  image-rendering: pixelated !important;
+}
+
+.agent-sprite.sprite-volt::before { background-image: url("assets/robots/volt-walk.png") !important; }
+.agent-sprite.sprite-ember::before { background-image: url("assets/robots/ember-walk.png") !important; }
+.agent-sprite.sprite-prism::before { background-image: url("assets/robots/prism-walk.png") !important; }
+.agent-sprite.sprite-sage::before { background-image: url("assets/robots/sage-walk.png") !important; }
+.agent-sprite.sprite-wrench::before { background-image: url("assets/robots/wrench-walk.png") !important; }
+.agent-sprite.sprite-relic::before { background-image: url("assets/robots/relic-walk.png") !important; }
+
+/* Keep original atlas agents pixelated too */
+.agent-sprite.sprite-hy3::before,
+.agent-sprite.sprite-flash::before,
+.agent-sprite.sprite-nano::before,
+.agent-sprite.sprite-glm::before,
+.agent-sprite.sprite-sonnet::before,
+.agent-sprite.sprite-opus::before,
+.agent-sprite.sprite-architect::before {
+  image-rendering: pixelated !important;
+}
+
+.agent-sprite.sprite-hy3,
+.agent-sprite.sprite-flash,
+.agent-sprite.sprite-nano,
+.agent-sprite.sprite-glm,
+.agent-sprite.sprite-sonnet,
+.agent-sprite.sprite-opus,
+.agent-sprite.sprite-architect {
+  filter: saturate(1.12) contrast(1.04) brightness(1.03)
+    drop-shadow(0 3px 0 rgba(8, 28, 18, 0.5)) !important;
+}
+
+/* ---- FX juice ---- */
+.gain-float {
+  font-size: 16px !important;
+  color: var(--arcade-gold) !important;
+  text-shadow:
+    2px 2px 0 #04110c,
+    -1px 0 0 #04110c,
+    0 -1px 0 #04110c,
+    0 0 10px rgba(255, 210, 74, 0.7) !important;
+  animation: gain-rise-arcade 1.2s steps(10, end) forwards !important;
+  z-index: 50;
+}
+
+.gain-float.is-sprint {
+  font-size: 22px !important;
+  color: #fff36a !important;
+  text-shadow:
+    2px 2px 0 #04110c,
+    0 0 14px rgba(255, 210, 74, 0.95) !important;
+}
+
+.gain-float.is-echo {
+  font-size: 14px !important;
+  color: var(--arcade-cyan) !important;
+}
+
+@keyframes gain-rise-arcade {
+  0% { opacity: 0; transform: translateY(8px) scale(0.7); }
+  12% { opacity: 1; transform: translateY(0) scale(1.15); }
+  28% { transform: translateY(-6px) scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-48px) scale(0.9); }
+}
+
+.click-spark {
+  position: fixed;
+  z-index: 80;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 1px;
+  background: var(--arcade-gold);
+  box-shadow: 0 0 6px var(--arcade-gold);
+  pointer-events: none;
+  animation: click-spark-fly 480ms steps(6, end) forwards;
+}
+
+.click-spark.is-sprint {
+  width: 8px;
+  height: 8px;
+  background: #fff36a;
+  box-shadow: 0 0 10px #fff36a;
+}
+
+@keyframes click-spark-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(var(--rot));
+  }
+}
+
+/* Sprint screen kick */
+.game.is-screen-kick .map-shell {
+  animation: screen-kick 200ms steps(3, end);
+}
+
+@keyframes screen-kick {
+  0% { transform: translate(0, 0); }
+  30% { transform: translate(0, 2px); }
+  60% { transform: translate(0, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Command Center dock keeps sand theme but punchier borders */
+.dock.glass {
+  border-radius: 2px !important;
+}
+
+.buy-button:not(:disabled):hover,
+.upgrade-button:not(:disabled):hover {
+  filter: brightness(1.12);
+  box-shadow: 0 0 12px rgba(78, 240, 226, 0.35);
+}
+
+.buy-button:not(:disabled):active {
+  transform: translateY(2px);
+}
+
+/* Minions a bit larger */
+.minion {
+  width: 52px !important;
+  height: 60px !important;
+}
+.minion-sprite {
+  filter: saturate(1.1) brightness(1.04) drop-shadow(0 2px 0 rgba(18, 50, 34, 0.4)) !important;
+  image-rendering: pixelated;
+  animation: minion-bob-arcade 2.4s steps(2, end) infinite !important;
+}
+
+@keyframes minion-bob-arcade {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Pylon charge more readable */
+.pylon-hotspot.is-charged .pylon-ring {
+  filter: drop-shadow(0 0 10px rgba(78, 240, 226, 1));
+}
+
+.pylon-tip {
+  background: var(--arcade-gold) !important;
+  border: 2px solid var(--arcade-ink) !important;
+  box-shadow: 0 0 8px rgba(255, 210, 74, 0.7);
+}
+
+/* Map-only restore button */
+.hud-restore {
+  border: 3px solid var(--arcade-border) !important;
+  border-radius: 2px !important;
+  background: var(--arcade-panel) !important;
+  color: var(--arcade-sand) !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.5);
+  font-family: Monaco, monospace !important;
+  text-transform: uppercase;
+}
+
+.toast {
+  border: 2px solid var(--arcade-border) !important;
+  border-radius: 2px !important;
+  background: var(--arcade-panel) !important;
+  color: var(--arcade-sand) !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.5);
+  font-family: Monaco, monospace !important;
+}
+
+/* Reduced motion: keep readable, drop kicks */
+@media (prefers-reduced-motion: reduce) {
+  .game.is-screen-kick .map-shell { animation: none; }
+  .click-spark { animation-duration: 200ms; opacity: 0.7; }
+  .gain-float { animation-duration: 900ms !important; }
+  .primary-action.is-pulsing { animation: none; }
+  .hud-primary.is-token-pop,
+  #tok.is-tick { animation: none; }
+  .live-dot { animation: none; }
+}
+
+.game.motion-off .agent:not(.is-walking):not(.is-picked-up):not(.is-dragging) .agent-sprite {
+  animation: none !important;
+}
+
+/* Fix dark-chrome control glyphs */
+.panel-toggle span {
+  background: var(--arcade-sand) !important;
+  height: 2px !important;
+  width: 16px !important;
+}
+
+.panel-toggle:hover span {
+  background: var(--arcade-cyan) !important;
+}
+
+.motion-toggle-icon,
+.motion-toggle-icon i {
+  border-color: var(--arcade-cyan) !important;
+  background: var(--arcade-cyan) !important;
+}
+
+.map-only-button span {
+  color: var(--arcade-cyan) !important;
+}
+
+.hud-primary {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 12px !important;
+}
+
+.hud-primary .px-icon,
+.hud-primary .icon-token {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 2px;
+  background:
+    linear-gradient(145deg, #ffe07a, #e0a01a);
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.25), 0 0 6px rgba(255, 210, 74, 0.4);
+}
+
+.hud-primary .px-icon::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 50% 45%, #fff6c8 0 28%, transparent 30%),
+    linear-gradient(145deg, #ffe07a, #e0a01a);
+  border-radius: 2px;
+}
+
+/* Make new agent spawn pop harder */
+.agent.is-new .agent-sprite {
+  animation: agent-spawn-pop 520ms steps(5, end) !important;
+}
+
+@keyframes agent-spawn-pop {
+  0% { transform: translateY(12px) scale(0.4); filter: brightness(2); }
+  40% { transform: translateY(-6px) scale(1.15); }
+  70% { transform: translateY(2px) scale(0.95); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Command center callout slightly brighter */
+.command-center-callout {
+  opacity: 0.95 !important;
+  box-shadow: 3px 3px 0 rgba(7, 27, 19, 0.7), 0 0 12px rgba(78, 240, 226, 0.25) !important;
+}
+
+/* ==========================================================================
+   LIVING CAMPUS PASS — labels, clipping, dance, ship glyph, field relay
+   ========================================================================== */
+
+/* Ship button: pixel package / "ship it" mark — no emoji */
+.primary-action .action-symbol.ship-glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.primary-action .action-symbol.ship-glyph i,
+.primary-action .action-symbol.ship-glyph::before,
+.primary-action .action-symbol.ship-glyph::after {
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.primary-action .action-symbol.ship-glyph i {
+  width: 14px;
+  height: 11px;
+  left: 50%;
+  top: 55%;
+  translate: -50% -50%;
+  border: 2px solid #2a1a00;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #fff2b0, #f0c84a);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.primary-action .action-symbol.ship-glyph::before {
+  width: 10px;
+  height: 5px;
+  left: 50%;
+  top: 22%;
+  translate: -50% 0;
+  border: 2px solid #2a1a00;
+  border-bottom: 0;
+  background: #ffe07a;
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+
+.primary-action .action-symbol.ship-glyph::after {
+  width: 8px;
+  height: 2px;
+  left: 50%;
+  top: 58%;
+  translate: -50% 0;
+  background: #2a1a00;
+}
+
+/* Agent name tags: hidden until hover only (never stuck on the sprite) */
+.agent-label {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: 8;
+  top: auto !important;
+  bottom: -4px !important;
+  max-width: 120px !important;
+  white-space: nowrap;
+  transform: translateX(-50%) translateY(4px) !important;
+  transition: opacity 120ms linear, transform 120ms steps(2, end) !important;
+}
+
+.agent:hover .agent-label,
+.agent:focus-visible .agent-label {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+.agent.is-selected .agent-label {
+  opacity: 0 !important;
+}
+
+.agent.is-selected:hover .agent-label,
+.agent.is-selected:focus-visible .agent-label {
+  opacity: 1 !important;
+}
+
+/* Stop clipping robot heads/feet — give walk frames room */
+.agent {
+  width: 120px !important;
+  height: 128px !important;
+  overflow: visible !important;
+  transform: translate(-50%, -88%) !important;
+}
+
+.agent-sprite {
+  width: 120px !important;
+  height: 120px !important;
+  overflow: visible !important;
+  scale: 0.78 0.78 !important;
+  transform-origin: 50% 100% !important;
+  image-rendering: pixelated !important;
+}
+
+.agent[data-facing="left"] .agent-sprite { scale: 0.78 0.78 !important; }
+.agent[data-facing="right"] .agent-sprite { scale: -0.78 0.78 !important; }
+
+.agent-sprite::before {
+  overflow: visible !important;
+  image-rendering: pixelated !important;
+}
+
+.agent-mode {
+  top: 18px !important;
+  right: 22px !important;
+}
+
+.agent-stack-count {
+  top: 16px !important;
+  left: 20px !important;
+}
+
+.agent-speech {
+  bottom: 108px !important;
+  z-index: 30;
+  max-width: 200px;
+  font-size: 11px !important;
+  line-height: 1.35;
+  border-width: 2px !important;
+  box-shadow: 3px 3px 0 rgba(4, 17, 12, 0.45);
+}
+
+.agent.is-picked-up .agent-sprite,
+.agent.is-dragging .agent-sprite {
+  scale: 0.9 0.9 !important;
+}
+
+.agent.is-picked-up[data-facing="right"] .agent-sprite,
+.agent.is-dragging[data-facing="right"] .agent-sprite {
+  scale: -0.9 0.9 !important;
+}
+
+/* Little victory dance while paused */
+.agent.is-dancing .agent-sprite {
+  animation: agent-dance 420ms steps(4, end) infinite !important;
+  filter: saturate(1.25) contrast(1.08) brightness(1.08)
+    drop-shadow(0 3px 0 rgba(8, 28, 18, 0.5))
+    drop-shadow(0 0 8px rgba(255, 210, 74, 0.55)) !important;
+}
+
+.agent.is-dancing::after {
+  animation: dance-shadow 420ms steps(2, end) infinite !important;
+}
+
+@keyframes agent-dance {
+  0% { transform: translate(0, 0) rotate(0deg) scaleY(1); }
+  25% { transform: translate(-3px, -8px) rotate(-8deg) scaleY(1.05); }
+  50% { transform: translate(0, 1px) rotate(0deg) scaleY(0.92) scaleX(1.08); }
+  75% { transform: translate(3px, -8px) rotate(8deg) scaleY(1.05); }
+  100% { transform: translate(0, 0) rotate(0deg) scaleY(1); }
+}
+
+@keyframes dance-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.28; }
+  50% { transform: scaleX(0.7); opacity: 0.4; }
+}
+
+/* ---- Field Relay (open meadow) ---- */
+.field-relay {
+  --charge: 0%;
+  position: absolute;
+  z-index: 9;
+  left: 88.5%;
+  top: 49.5%;
+  width: 72px;
+  height: 86px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  translate: -50% -72%;
+  cursor: pointer;
+  pointer-events: auto;
+  image-rendering: pixelated;
+}
+
+.relay-dish {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 34px;
+  height: 34px;
+  translate: -50% 0;
+  border: 3px solid #0b2118;
+  border-radius: 50% 50% 42% 42%;
+  background:
+    radial-gradient(circle at 50% 40%, #d8fff4 0 28%, #3ec9a8 30% 62%, #1a6b58 64%);
+  box-shadow:
+    0 0 0 2px #fff1bd,
+    0 4px 0 rgba(7, 27, 19, 0.45),
+    0 0 16px rgba(125, 255, 200, 0.35);
+}
+
+.relay-dish::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -16px;
+  width: 4px;
+  height: 18px;
+  translate: -50% 0;
+  background: #2a4a3a;
+  border: 1px solid #0b2118;
+  box-shadow: 0 0 6px rgba(125, 255, 200, 0.4);
+}
+
+.relay-dish::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  width: 10px;
+  height: 10px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: #7deede;
+  border: 2px solid #0b2118;
+  box-shadow: 0 0 10px #7deede;
+}
+
+.relay-beam {
+  position: absolute;
+  left: 50%;
+  bottom: 48px;
+  width: 3px;
+  height: 0;
+  translate: -50% 0;
+  background: linear-gradient(180deg, rgba(255, 244, 160, 0.9), rgba(125, 255, 200, 0.1));
+  opacity: 0.35;
+  box-shadow: 0 0 8px rgba(255, 244, 160, 0.6);
+  transition: height 160ms steps(3, end), opacity 160ms linear;
+}
+
+.field-relay.is-visited .relay-beam,
+.field-relay.is-charged .relay-beam,
+.field-relay.is-buffing .relay-beam {
+  height: 36px;
+  opacity: 0.95;
+  animation: relay-beam-pulse 0.9s steps(3, end) infinite;
+}
+
+@keyframes relay-beam-pulse {
+  0%, 100% { filter: brightness(1); opacity: 0.75; }
+  50% { filter: brightness(1.4); opacity: 1; }
+}
+
+.relay-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 48px;
+  height: 48px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: conic-gradient(#7deede var(--charge), rgba(9, 36, 30, 0.35) 0);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 60% 78%, transparent 80%);
+  mask: radial-gradient(circle, transparent 58%, #000 60% 78%, transparent 80%);
+  opacity: 0.75;
+}
+
+.field-relay.is-charged .relay-ring {
+  opacity: 1;
+  animation: pylon-ready 1.1s steps(4, end) infinite;
+  filter: drop-shadow(0 0 8px rgba(125, 238, 222, 0.9));
+}
+
+.field-relay.is-buffing .relay-ring {
+  background: conic-gradient(#ffd24a 100%, #ffd24a 0);
+  animation: pylon-ready 0.7s steps(3, end) infinite;
+  filter: drop-shadow(0 0 12px rgba(255, 210, 74, 0.95));
+}
+
+.relay-tip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  translate: -50% 0;
+  border: 2px solid #0b2118;
+  background: #ffd24a;
+  color: #0b2118;
+  font-family: Monaco, monospace;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 12px;
+  text-align: center;
+  opacity: 0;
+  box-shadow: 0 0 8px rgba(255, 210, 74, 0.8);
+}
+
+.relay-tip::after { content: "!"; }
+.field-relay.is-charged .relay-tip {
+  opacity: 1;
+  animation: pylon-bounce 1s steps(3, end) infinite;
+}
+
+.relay-callout {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  min-width: 104px;
+  padding: 4px 7px 3px;
+  border: 2px solid #fff1bd;
+  outline: 2px solid #0b2118;
+  background: #153526;
+  color: #fff1bd;
+  box-shadow: 3px 3px 0 rgba(7, 27, 19, 0.55);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  text-transform: uppercase;
+  translate: -50% 0;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.relay-callout b {
+  font-family: Monaco, monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.relay-callout small {
+  margin-top: 2px;
+  color: #7deede;
+  font-family: Monaco, monospace;
+  font-size: 6px;
+  letter-spacing: 0.06em;
+}
+
+.field-relay:hover .relay-callout,
+.field-relay:focus-visible .relay-callout,
+.field-relay.is-charged .relay-callout,
+.field-relay.is-buffing .relay-callout {
+  opacity: 1;
+  translate: -50% -3px;
+}
+
+.field-relay.is-buffing .relay-callout small { color: #ffd24a; }
+.field-relay:focus-visible { outline: none; }
+
+.relay-burst-ring {
+  position: absolute;
+  width: 48px;
+  height: 32px;
+  translate: -50% -70%;
+  border: 3px solid #ffd24a;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(11, 33, 24, 0.55), 0 0 24px #ffe07a;
+  animation: pylon-burst 1.15s steps(7, end) forwards;
+  pointer-events: none;
+}
+
+.relay-mote {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  translate: -50% -50%;
+  border-radius: 1px;
+  background: #ffe07a;
+  box-shadow: 0 0 8px #ffd24a;
+  animation: relay-mote-fly 820ms steps(6, end) forwards;
+  pointer-events: none;
+}
+
+@keyframes relay-mote-fly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+
+/* Slightly lighten vignette so ambient motion reads better */
+.map-shell::after {
+  opacity: 0.32 !important;
+}
+
+.game.motion-off .agent.is-dancing .agent-sprite,
+.game.motion-off .field-relay .relay-beam,
+.game.motion-off .field-relay.is-charged .relay-ring {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent.is-dancing .agent-sprite { animation-duration: 1.2s !important; }
+  .relay-beam { animation: none !important; }
+}
+
+
+/* ==========================================================================
+   POLISH PASS — sprites fixed, mission bottom-left, arcade HUD
+   ========================================================================== */
+
+/* ---- Field sprites: walk strip ON the element (no ::before atlas mess) ---- */
+.agent {
+  width: 80px !important;
+  height: 96px !important;
+  overflow: visible !important;
+  transform: translate(-50%, -86%) !important;
+}
+
+.agent-sprite.robot-sprite,
+.agent .agent-sprite {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 4px !important;
+  top: auto !important;
+  width: 72px !important;
+  height: 72px !important;
+  margin: 0 0 0 -36px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center bottom !important;
+  background-size: contain !important;
+  image-rendering: pixelated !important;
+  transform-origin: 50% 100% !important;
+  /* Facing is handled by the `scale` property so `transform` stays free
+     for keyframe animations (idle bob, dance, spawn pop). */
+  scale: 1 1 !important;
+  translate: 0 0 !important;
+  transform: none;
+  filter: drop-shadow(0 2px 0 rgba(8, 28, 18, 0.45)) !important;
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+/* Idle breathing: subtle 2-step pixel bob */
+.agent:not(.is-walking):not(.is-dancing):not(.is-picked-up):not(.is-dragging):not(.is-new) .agent-sprite {
+  animation: sprite-idle-bob var(--idle-cycle, 5s) steps(2, end) infinite !important;
+}
+.agent:nth-child(3n + 2) .agent-sprite { animation-delay: -1.7s !important; }
+.agent:nth-child(3n) .agent-sprite { animation-delay: -3.1s !important; }
+
+@keyframes sprite-idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Idle = stand portrait */
+.agent:not(.is-walking) .agent-sprite.sprite-hy3 { background-image: url("assets/robots/hy3-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-flash { background-image: url("assets/robots/flash-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-nano { background-image: url("assets/robots/nano-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-glm { background-image: url("assets/robots/glm-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-sonnet { background-image: url("assets/robots/sonnet-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-opus { background-image: url("assets/robots/opus-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-architect { background-image: url("assets/robots/architect-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-volt { background-image: url("assets/robots/volt-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-ember { background-image: url("assets/robots/ember-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-prism { background-image: url("assets/robots/prism-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-sage { background-image: url("assets/robots/sage-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-wrench { background-image: url("assets/robots/wrench-stand.png") !important; }
+.agent:not(.is-walking) .agent-sprite.sprite-relic { background-image: url("assets/robots/relic-stand.png") !important; }
+
+/* Walking = 4-frame strip, 96px source cells scaled into 72px viewport */
+.agent.is-walking .agent-sprite {
+  background-position: 0 0 !important;
+  background-size: 288px 72px !important; /* 4×72 */
+  animation:
+    sprite-walk-strip var(--walk-cycle, 0.5s) steps(4) infinite,
+    sprite-walk-bob calc(var(--walk-cycle, 0.5s) / 2) steps(2, end) infinite !important;
+}
+
+@keyframes sprite-walk-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+.agent.is-walking .agent-sprite.sprite-hy3 { background-image: url("assets/robots/hy3-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-flash { background-image: url("assets/robots/flash-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-nano { background-image: url("assets/robots/nano-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-glm { background-image: url("assets/robots/glm-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-sonnet { background-image: url("assets/robots/sonnet-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-opus { background-image: url("assets/robots/opus-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-architect { background-image: url("assets/robots/architect-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-volt { background-image: url("assets/robots/volt-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-ember { background-image: url("assets/robots/ember-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-prism { background-image: url("assets/robots/prism-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-sage { background-image: url("assets/robots/sage-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-wrench { background-image: url("assets/robots/wrench-walk.png") !important; }
+.agent.is-walking .agent-sprite.sprite-relic { background-image: url("assets/robots/relic-walk.png") !important; }
+
+@keyframes sprite-walk-strip {
+  from { background-position: 0 0; }
+  to { background-position: -288px 0; }
+}
+
+/* Kill pseudo walk layers that caused bleed */
+.agent-sprite::before,
+.agent-sprite::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  animation: none !important;
+}
+
+/* Facing flip via `scale` — composes with any transform animation */
+.agent[data-facing="right"] .agent-sprite { scale: -1 1 !important; }
+.agent[data-facing="left"] .agent-sprite { scale: 1 1 !important; }
+
+.agent.is-picked-up .agent-sprite,
+.agent.is-dragging .agent-sprite {
+  scale: 1.08 1.08 !important;
+  transform: translateY(-8px);
+  animation: none !important;
+  filter: drop-shadow(0 6px 0 rgba(8, 28, 18, 0.35)) !important;
+}
+.agent.is-picked-up[data-facing="right"] .agent-sprite,
+.agent.is-dragging[data-facing="right"] .agent-sprite {
+  scale: -1.08 1.08 !important;
+}
+
+/* :not(#\#) lifts these to id-level so older :not()-heavy idle rules lose */
+.agent.is-dancing .agent-sprite:not(#\#) {
+  animation: agent-dance-arcade 420ms steps(4) infinite !important;
+}
+
+@keyframes agent-dance-arcade {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, -6px) rotate(-6deg); }
+  50% { transform: translate(0, 1px) scaleY(0.92); }
+  75% { transform: translate(2px, -6px) rotate(6deg); }
+}
+
+/* Spawn pop must outrank the idle bob declared above */
+.agent.is-new .agent-sprite:not(#\#) {
+  animation: agent-spawn-pop 520ms steps(5, end) !important;
+}
+
+.agent-mode {
+  top: 8px !important;
+  right: 6px !important;
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 7px !important;
+  border: 2px solid #fff1bd !important;
+  border-radius: 2px !important;
+  image-rendering: pixelated;
+}
+.agent-stack-count {
+  top: 6px !important;
+  left: 4px !important;
+  border: 2px solid #fff1bd !important;
+  border-radius: 2px !important;
+  font-size: 8px !important;
+}
+.agent-label {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  bottom: -2px !important;
+  top: auto !important;
+  border: 2px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  background: #ffe8a3 !important;
+  color: #0a1a14 !important;
+  font-family: Monaco, monospace !important;
+  font-size: 8px !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+}
+.agent:hover .agent-label,
+.agent:focus-visible .agent-label {
+  opacity: 1 !important;
+}
+.agent-speech {
+  bottom: 88px !important;
+  border: 2px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  background: #fff6d0 !important;
+  color: #0a1a14 !important;
+  font-family: Monaco, monospace !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+}
+
+/* Market / roster stand portraits */
+.robot-sprite {
+  image-rendering: pixelated !important;
+  background-repeat: no-repeat !important;
+  background-position: center bottom !important;
+  background-size: contain !important;
+}
+.model-glyph .robot-sprite.sprite-hy3,
+.roster-sprite .robot-sprite.sprite-hy3,
+.agent-mini .robot-sprite.sprite-hy3,
+.minion-sprite.sprite-hy3 { background-image: url("assets/robots/hy3-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-flash,
+.roster-sprite .robot-sprite.sprite-flash,
+.agent-mini .robot-sprite.sprite-flash,
+.minion-sprite.sprite-flash { background-image: url("assets/robots/flash-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-nano,
+.roster-sprite .robot-sprite.sprite-nano,
+.agent-mini .robot-sprite.sprite-nano,
+.minion-sprite.sprite-nano { background-image: url("assets/robots/nano-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-glm,
+.roster-sprite .robot-sprite.sprite-glm,
+.agent-mini .robot-sprite.sprite-glm,
+.minion-sprite.sprite-glm { background-image: url("assets/robots/glm-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-sonnet,
+.roster-sprite .robot-sprite.sprite-sonnet,
+.agent-mini .robot-sprite.sprite-sonnet,
+.minion-sprite.sprite-sonnet { background-image: url("assets/robots/sonnet-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-opus,
+.roster-sprite .robot-sprite.sprite-opus,
+.agent-mini .robot-sprite.sprite-opus,
+.minion-sprite.sprite-opus { background-image: url("assets/robots/opus-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-architect,
+.roster-sprite .robot-sprite.sprite-architect,
+.agent-mini .robot-sprite.sprite-architect,
+.minion-sprite.sprite-architect { background-image: url("assets/robots/architect-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-volt,
+.roster-sprite .robot-sprite.sprite-volt,
+.agent-mini .robot-sprite.sprite-volt,
+.minion-sprite.sprite-volt { background-image: url("assets/robots/volt-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-ember,
+.roster-sprite .robot-sprite.sprite-ember,
+.agent-mini .robot-sprite.sprite-ember,
+.minion-sprite.sprite-ember { background-image: url("assets/robots/ember-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-prism,
+.roster-sprite .robot-sprite.sprite-prism,
+.agent-mini .robot-sprite.sprite-prism,
+.minion-sprite.sprite-prism { background-image: url("assets/robots/prism-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-sage,
+.roster-sprite .robot-sprite.sprite-sage,
+.agent-mini .robot-sprite.sprite-sage,
+.minion-sprite.sprite-sage { background-image: url("assets/robots/sage-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-wrench,
+.roster-sprite .robot-sprite.sprite-wrench,
+.agent-mini .robot-sprite.sprite-wrench,
+.minion-sprite.sprite-wrench { background-image: url("assets/robots/wrench-stand.png") !important; }
+.model-glyph .robot-sprite.sprite-relic,
+.roster-sprite .robot-sprite.sprite-relic,
+.agent-mini .robot-sprite.sprite-relic,
+.minion-sprite.sprite-relic { background-image: url("assets/robots/relic-stand.png") !important; }
+
+.model-glyph,
+.agent-mini,
+.roster-sprite {
+  overflow: hidden !important;
+  border-radius: 2px !important;
+  border: 2px solid #3d6a55 !important;
+  background: #0f241c !important;
+  image-rendering: pixelated;
+}
+
+/* ---- Mission: true bottom-left corner ---- */
+.guide-card {
+  position: absolute !important;
+  z-index: 36 !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: 12px !important;
+  top: auto !important;
+  width: min(280px, calc(100vw - 28px)) !important;
+  padding: 8px 10px 9px !important;
+  border: 3px solid #fff1bd !important;
+  outline: 2px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  background: #12281f !important;
+  color: #fff6d0 !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.55) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  pointer-events: none;
+}
+
+.guide-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-family: Monaco, monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.guide-head strong { color: #ffd24a; }
+.guide-head span,
+#guide-step { color: #7deede; }
+.guide-card p,
+#guide-text {
+  margin: 0;
+  color: #fff6d0 !important;
+  font-family: Monaco, monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.4;
+}
+
+/* Ship / review sit just above mission card */
+.action-dock {
+  left: 12px !important;
+  bottom: 92px !important;
+  width: min(440px, calc(100vw - var(--dock-width, 342px) - 40px)) !important;
+  border: 3px solid #fff1bd !important;
+  outline: 2px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  background: #12281f !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.5) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  padding: 7px !important;
+}
+
+.game.panel-closed .action-dock {
+  width: min(440px, calc(100vw - 28px)) !important;
+}
+
+.map-hint { display: none !important; }
+
+/* ---- Arcade chrome polish ---- */
+.topbar.glass,
+.feed.glass,
+.brownout.glass {
+  border: 3px solid #fff1bd !important;
+  outline: 2px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  background: #12281f !important;
+  color: #ffe8a3 !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.5) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.hud-primary,
+.hud-stat {
+  border: 2px solid #3d6a55 !important;
+  border-radius: 2px !important;
+  background: #18362a !important;
+}
+
+.hud-primary {
+  border-color: #6a4e12 !important;
+  background: linear-gradient(180deg, #2a4020, #1a2e18) !important;
+}
+
+#tok, .hud-value {
+  color: #ffd24a !important;
+  font-family: Monaco, monospace !important;
+  image-rendering: pixelated;
+}
+
+.feed {
+  border-radius: 2px !important;
+  right: calc(var(--dock-width, 342px) + 16px) !important;
+  bottom: 12px !important;
+}
+.game.panel-closed .feed { right: 12px !important; }
+
+.feed-lines div {
+  font-family: Monaco, monospace !important;
+  font-size: 9px !important;
+}
+
+.dock.glass {
+  border: 3px solid #fff1bd !important;
+  outline: 3px solid #0a1a14 !important;
+  border-radius: 2px !important;
+  box-shadow: 6px 6px 0 rgba(4, 17, 12, 0.5) !important;
+}
+
+.tab,
+.buy-button,
+.upgrade-button,
+.mode-select,
+.quiet-button,
+.command-view-button,
+.motion-toggle,
+.map-only-button,
+.icon-button {
+  border-radius: 2px !important;
+  font-family: Monaco, monospace !important;
+  image-rendering: pixelated;
+}
+
+.primary-action,
+.secondary-action {
+  border-radius: 2px !important;
+  border: 3px solid #0a1a14 !important;
+}
+
+.level-badge {
+  border-radius: 2px !important;
+  font-family: Monaco, monospace !important;
+}
+
+/* Soften map vignette so ambient reads cleanly */
+.map-shell::after {
+  opacity: 0.22 !important;
+}
+
+.game.map-only .guide-card,
+.game.map-only .action-dock {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 820px) {
+  .guide-card {
+    left: 10px !important;
+    bottom: 10px !important;
+    width: calc(100vw - 20px) !important;
+  }
+  .action-dock {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    bottom: 96px !important;
+  }
+  .feed {
+    right: 10px !important;
+    bottom: 180px !important;
+    width: min(240px, calc(100vw - 20px)) !important;
+  }
+}
+
+/* Force action dock fully on-screen above mission */
+.action-dock,
+.game.panel-closed .action-dock {
+  left: 12px !important;
+  right: auto !important;
+  bottom: 100px !important;
+  width: min(430px, calc(100vw - var(--dock-width, 360px) - 36px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  transform: none !important;
+  translate: 0 0 !important;
+  display: grid !important;
+  grid-template-columns: 1.15fr 1fr !important;
+  gap: 6px !important;
+  z-index: 38 !important;
+}
+
+.game.panel-closed .action-dock {
+  width: min(430px, calc(100vw - 24px)) !important;
+}
+
+.primary-action,
+.secondary-action {
+  min-width: 0 !important;
+  overflow: hidden;
+}
+
+/* Mission always bottom-left, never under/over wrong */
+.guide-card {
+  z-index: 37 !important;
+  left: 12px !important;
+  bottom: 12px !important;
+  width: min(300px, calc(100vw - 24px)) !important;
+}
+
+/* Habitat minions — full stand portraits */
+.minion {
+  width: 48px !important;
+  height: 56px !important;
+  overflow: visible !important;
+}
+.minion-sprite.robot-sprite {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-size: contain !important;
+  background-position: center bottom !important;
+  background-repeat: no-repeat !important;
+  image-rendering: pixelated !important;
+  filter: drop-shadow(0 2px 0 rgba(18, 50, 34, 0.35)) !important;
+  animation: minion-bob-arcade 2.4s steps(2) infinite !important;
+}
+.minion-sprite.sprite-hy3 { background-image: url("assets/robots/hy3-stand.png") !important; }
+.minion-sprite.sprite-flash { background-image: url("assets/robots/flash-stand.png") !important; }
+.minion-sprite.sprite-nano { background-image: url("assets/robots/nano-stand.png") !important; }
+.minion-sprite.sprite-glm { background-image: url("assets/robots/glm-stand.png") !important; }
+.minion-sprite.sprite-sonnet { background-image: url("assets/robots/sonnet-stand.png") !important; }
+.minion-sprite.sprite-opus { background-image: url("assets/robots/opus-stand.png") !important; }
+.minion-sprite.sprite-architect { background-image: url("assets/robots/architect-stand.png") !important; }
+.minion-sprite.sprite-volt { background-image: url("assets/robots/volt-stand.png") !important; }
+.minion-sprite.sprite-ember { background-image: url("assets/robots/ember-stand.png") !important; }
+.minion-sprite.sprite-prism { background-image: url("assets/robots/prism-stand.png") !important; }
+.minion-sprite.sprite-sage { background-image: url("assets/robots/sage-stand.png") !important; }
+.minion-sprite.sprite-wrench { background-image: url("assets/robots/wrench-stand.png") !important; }
+.minion-sprite.sprite-relic { background-image: url("assets/robots/relic-stand.png") !important; }
+
+@keyframes minion-bob-arcade {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ==========================================================================
+   OVERHAUL PASS — centered clicker, hover-only place tags, 8-bit chrome
+   ========================================================================== */
+
+/* ---- Clicker back in the center ---- */
+.action-dock,
+.game.panel-closed .action-dock {
+  left: calc((100vw - var(--dock-width, 342px)) / 2) !important;
+  right: auto !important;
+  bottom: max(14px, env(safe-area-inset-bottom)) !important;
+  width: min(430px, calc(100vw - var(--dock-width, 342px) - 36px)) !important;
+  transform: translateX(-50%) !important;
+  translate: 0 0 !important;
+}
+
+.game.panel-closed .action-dock {
+  left: 50% !important;
+  width: min(430px, calc(100vw - 24px)) !important;
+}
+
+.game.map-only .action-dock {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Feed hugs the corner so the centered dock has room */
+.feed { bottom: 12px !important; }
+
+@media (max-width: 820px) {
+  .action-dock,
+  .game.panel-closed .action-dock {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 10px !important;
+    width: calc(100vw - 20px) !important;
+    transform: translateX(-50%) !important;
+  }
+  .guide-card { bottom: 92px !important; }
+}
+
+/* ---- Place name tags: hover-only, with an 8-bit selection box ---- */
+
+/* Habitat plots */
+.plot { pointer-events: auto; }
+
+.plot-plate {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 100ms steps(2, end), transform 100ms steps(2, end);
+}
+
+.plot:hover .plot-plate,
+.plot:focus-within .plot-plate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.plot,
+.plot.is-active {
+  border: 2px dashed transparent !important;
+  border-radius: 0 !important;
+  transition: border-color 90ms steps(2, end);
+}
+
+.plot:hover,
+.plot:focus-within,
+.plot.is-active:hover {
+  border-color: #7deede !important;
+  box-shadow: 0 0 0 2px rgba(10, 26, 20, 0.85), inset 0 0 0 2px rgba(10, 26, 20, 0.55);
+}
+
+/* Pixel corner brackets on the hovered plot */
+.plot::before,
+.plot::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  pointer-events: none;
+}
+.plot::before {
+  left: -4px;
+  top: -4px;
+  border-left: 4px solid #ffd24a;
+  border-top: 4px solid #ffd24a;
+}
+.plot::after {
+  right: -4px;
+  bottom: -4px;
+  border-right: 4px solid #ffd24a;
+  border-bottom: 4px solid #ffd24a;
+}
+.plot:hover::before,
+.plot:hover::after,
+.plot:focus-within::before,
+.plot:focus-within::after { opacity: 1; }
+
+/* Command Center: callout only on hover/focus, selection box while hovered */
+.command-center-callout {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 100ms steps(2, end), transform 100ms steps(2, end);
+}
+.command-center-hotspot:hover .command-center-callout,
+.command-center-hotspot:focus-visible .command-center-callout,
+.command-center-hotspot.is-active .command-center-callout {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0);
+}
+.command-center-hotspot::before {
+  border-radius: 0 !important;
+}
+.command-center-hotspot:hover::before,
+.command-center-hotspot:focus-visible::before {
+  opacity: 1 !important;
+  box-shadow: inset 0 0 0 2px #7deede, 0 0 0 2px rgba(10, 26, 20, 0.8) !important;
+}
+
+/* Field Relay: name tag hover-only too; the "!" tip still marks charged */
+.relay-callout {
+  opacity: 0 !important;
+  transform: translateX(-50%) translateY(4px) !important;
+  transition: opacity 100ms steps(2, end), transform 100ms steps(2, end) !important;
+}
+.field-relay:hover .relay-callout,
+.field-relay:focus-visible .relay-callout {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+.field-relay:hover,
+.field-relay:focus-visible {
+  outline: 2px dashed #7deede !important;
+  outline-offset: 4px;
+}
+
+/* ---- 8-bit chrome: square corners, chunky bevels everywhere ---- */
+.glass,
+.topbar.glass,
+.action-dock.glass,
+.feed.glass,
+.brownout.glass,
+.dock.glass,
+.guide-card,
+.toast,
+.hud-restore,
+.hud-primary,
+.hud-stat,
+.tab,
+.tabs,
+.buy-button,
+.upgrade-button,
+.mode-select,
+.mode-switch,
+.mode-switch button,
+.quiet-button,
+.command-view-button,
+.motion-toggle,
+.map-only-button,
+.icon-button,
+.primary-action,
+.secondary-action,
+.action-symbol,
+.review-symbol,
+.level-badge,
+.inspector,
+.model-card,
+.upgrade-card,
+.habitat-card,
+.habitat-unit,
+.roster-card,
+.synergy-card,
+.roster-empty,
+.roster-summary > span,
+.inspector-stats span,
+.model-glyph,
+.agent-mini,
+.roster-sprite,
+.sprite-frame,
+.market-tier,
+.tier-lock,
+.tier-badge,
+.owned-pill,
+.command-brief,
+.rate-strip,
+.plot-plate,
+.agent-label,
+.agent-speech,
+.minion-name,
+.brand-mark,
+.burst-meter,
+.feed-head button {
+  border-radius: 0 !important;
+}
+
+.buy-button,
+.upgrade-button {
+  border: 2px solid #0a1a14 !important;
+  box-shadow: 2px 2px 0 rgba(10, 26, 20, 0.55) !important;
+  text-transform: uppercase;
+}
+.buy-button:active:not(:disabled),
+.upgrade-button:active:not(:disabled) {
+  translate: 2px 2px !important;
+  box-shadow: none !important;
+}
+
+.hud-primary,
+.hud-stat {
+  box-shadow: 2px 2px 0 rgba(4, 17, 12, 0.5) !important;
+}
+
+.tab { border: 2px solid transparent !important; }
+.tab.is-active {
+  border-color: #0a1a14 !important;
+  box-shadow: 2px 2px 0 rgba(10, 26, 20, 0.45) !important;
+}
+
+.dock-header h2,
+.section-heading h3,
+.tier-heading h4 {
+  font-family: Monaco, "Cascadia Mono", monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.toast {
+  border: 3px solid #fff1bd !important;
+  outline: 2px solid #0a1a14 !important;
+  background: #12281f !important;
+  color: #ffe8a3 !important;
+  box-shadow: 4px 4px 0 rgba(4, 17, 12, 0.55) !important;
+}
+
+/* ---- Motion-off / reduced-motion: keep the new sprite animations quiet ---- */
+/* :not(#\#) bumps these to id-level specificity so they beat the
+   heavily-:not()-qualified idle-bob rule above. */
+.game.motion-off .agent-sprite:not(#\#),
+.game.motion-off .minion-sprite.robot-sprite:not(#\#) {
+  animation: none !important;
 }
